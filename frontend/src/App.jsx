@@ -7,6 +7,9 @@ import LeadDetails from "./pages/LeadDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import Leads from "./pages/Leads";
+import Analytics from "./pages/Analytics";
+import Profile from "./admin/Profile";
 
 function App() {
   return (
@@ -22,6 +25,30 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/leads" 
+          element={
+            <ProtectedRoute>
+              <Leads />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics" 
+          element={
+            <ProtectedRoute>
+              <Analytics/>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <Profile/>
             </ProtectedRoute>
           }
         />

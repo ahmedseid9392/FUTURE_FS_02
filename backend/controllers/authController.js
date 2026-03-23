@@ -1,141 +1,125 @@
-import Admin from "../models/Admin.js";
+import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
 
 // 🔑 LOGIN
-export const loginAdmin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const admin = await Admin.findOne({ email });
-
-    if (!admin) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const isMatch = await bcrypt.compare(password, admin.password);
-
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const token = jwt.sign(
-      { id: admin._id },
-      "secretkey", // later move to .env
-      { expiresIn: "1d" }
-    );
-
-    res.json({ token });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+// Generate JWT Token
+const generateToken = (user) => {
+  return jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
 };
 
-// ➕ CREATE ADMIN
-// controllers/authController.js
-
-export const registerAdmin = async (req, res) => {
+// Register User
+export const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    const exists = await Admin.findOne({ email });
-    if (exists) {
-      return res.status(400).json({ message: "Admin already exists" });
+    const { username, email, password } = req.body;
+    
+    // Check if user exists
+    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User already exists' });
     }
-
-    const hashed = await bcrypt.hash(password, 10);
-
-    const admin = await Admin.create({
-      email,
-      password: hashed
+    
+    // Create user
+    const user = new User({ username, email, password });
+    await user.save();
+    
+    // Generate token
+    const token = generateToken(user);
+    
+    res.status(201).json({
+      message: 'User created successfully',
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
     });
-
-    const token = jwt.sign({ id: admin._id }, "secretkey", {
-      expiresIn: "1d"
-    });
-
-    res.status(201).json({ token });
-
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// 📄 GET ALL ADMINS
-export const getAdmins = async (req, res) => {
-  try {
-    const admins = await Admin.find().select("-password");
-    res.json(admins);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-
-// ✏️ UPDATE ADMIN
-export const updateAdmin = async (req, res) => {
+// Login User
+ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    const admin = await Admin.findById(req.params.id);
-
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found" });
+    
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
-
-    if (email) admin.email = email;
-
-    if (password) {
-      admin.password = await bcrypt.hash(password, 10);
+    
+    // Check password
+    const isValid = await user.comparePassword(password);
+    if (!isValid) {
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
-
-    const updated = await admin.save();
-
+    
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+    
+    // Generate token
+    const token = generateToken(user);
+    
     res.json({
-      _id: updated._id,
-      email: updated.email
+      message: 'Login successful',
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        avatar: user.avatar
+      }
     });
-
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
-
-// ❌ DELETE ADMIN
-export const deleteAdmin = async (req, res) => {
+// Get Current User Profile
+export const getProfile = async (req, res) => {
   try {
-    const admin = await Admin.findByIdAndDelete(req.params.id);
-
-    if (!admin) {
-      return res.status(404).json({ message: "Admin not found" });
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
     }
-
-    res.json({ message: "Admin deleted" });
+    res.json(user);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Get profile error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
+
 };
-
-
 
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
-  const admin = await Admin.findOne({ email });
+  const user = await user.findOne({ email });
 
-  if (!admin) {
+  if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
 
   const resetToken = crypto.randomBytes(20).toString("hex");
 
-  admin.resetToken = resetToken;
-  admin.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 min
+  user.resetToken = resetToken;
+  user.resetTokenExpire = Date.now() + 10 * 60 * 1000; // 10 min
 
-  await admin.save();
+  await user.save();
 
   // Normally send email here
   res.json({
@@ -148,20 +132,20 @@ export const resetPassword = async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
 
-  const admin = await Admin.findOne({
+  const user = await User.findOne({
     resetToken: token,
     resetTokenExpire: { $gt: Date.now() }
   });
 
-  if (!admin) {
+  if (!user) {
     return res.status(400).json({ message: "Invalid or expired token" });
   }
 
-  admin.password = await bcrypt.hash(password, 10);
-  admin.resetToken = undefined;
-  admin.resetTokenExpire = undefined;
+  user.password = await bcrypt.hash(password, 10);
+  user.resetToken = undefined;
+  user.resetTokenExpire = undefined;
 
-  await admin.save();
+  await user.save();
 
   res.json({ message: "Password reset successful" });
 };
