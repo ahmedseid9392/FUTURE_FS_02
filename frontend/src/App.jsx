@@ -7,6 +7,7 @@ import Leads from './pages/Leads';
 import LeadDetails from './pages/LeadDetails';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
+import Messages from './pages/Messages';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -51,7 +52,11 @@ function AppRoutes() {
           <LeadDetails />
         </ProtectedRoute>
       } />
-      
+      <Route path="/messages" element={
+  <ProtectedRoute>
+    <Messages />
+  </ProtectedRoute>
+} />
       <Route path="/analytics" element={
         <ProtectedRoute>
           <Analytics />
