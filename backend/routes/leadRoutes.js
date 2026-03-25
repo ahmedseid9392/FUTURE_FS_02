@@ -1,4 +1,5 @@
-import express from "express";
+import express from 'express';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 import {
   getLeads,
   getLeadById,
@@ -7,17 +8,19 @@ import {
   deleteLead,
   addNote,
   getNotes
-} from "../controllers/leadController.js";
-import protect from "../middleware/authMiddleware.js";
-
+} from '../controllers/leadController.js';
 
 const router = express.Router();
 
-router.get('/', protect, getLeads);
-router.get('/:id', protect, getLeadById);
-router.put('/:id', protect, updateLead);
-router.delete('/:id', protect, deleteLead);
-router.post('/:id/notes', protect, addNote);
-router.get('/:id/notes', protect, getNotes);
+// Public route for form submissions
+router.post('/', createLead);
+
+// Protected routes
+router.get('/', authenticateToken, getLeads);
+router.get('/:id', authenticateToken, getLeadById);
+router.put('/:id', authenticateToken, updateLead);
+router.delete('/:id', authenticateToken, deleteLead);
+router.post('/:id/notes', authenticateToken, addNote);
+router.get('/:id/notes', authenticateToken, getNotes);
 
 export default router;

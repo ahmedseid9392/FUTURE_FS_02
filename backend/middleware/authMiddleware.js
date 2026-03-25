@@ -1,7 +1,7 @@
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 
-const protect = (req, res, next) => {
- const token = req.header('Authorization')?.replace('Bearer ', '');
+export const authenticateToken = (req, res, next) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
   
   if (!token) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
@@ -15,5 +15,3 @@ const protect = (req, res, next) => {
     res.status(403).json({ message: 'Invalid or expired token' });
   }
 };
-
-export default protect;

@@ -7,7 +7,6 @@ const Layout = ({ children }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Check screen size on mount
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -31,7 +30,7 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950 transition-colors duration-200">
       
       {/* Sidebar */}
       <div className={`

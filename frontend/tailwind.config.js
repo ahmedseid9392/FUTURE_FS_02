@@ -2,10 +2,30 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,jsx}"
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class', // This enables dark mode with class strategy
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        // You can add custom colors here
+      },
+      animation: {
+        'slide-in': 'slide-in 0.3s ease-out',
+      },
+      keyframes: {
+        'slide-in': {
+          'from': {
+            transform: 'translateX(100%)',
+            opacity: '0',
+          },
+          'to': {
+            transform: 'translateX(0)',
+            opacity: '1',
+          },
+        },
+      },
+    },
   },
   plugins: [],
 }

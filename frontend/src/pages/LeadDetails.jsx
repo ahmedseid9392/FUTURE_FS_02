@@ -36,39 +36,28 @@ const LeadDetails = () => {
     source: ""
   });
 
-  // Fetch lead details - using the correct endpoint
   const fetchLeadDetails = async () => {
     try {
-      // Your leads endpoint might be just /leads and then filter on frontend
-      // or you might have a specific endpoint. Let's try both approaches
-      const res = await API.get("/leads");
-      const foundLead = res.data.find(lead => lead._id === id);
-      if (foundLead) {
-        setLead(foundLead);
-        setEditForm({
-          name: foundLead.name,
-          email: foundLead.email,
-          phone: foundLead.phone || "",
-          source: foundLead.source || ""
-        });
-      } else {
-        setError("Lead not found");
-      }
+      const res = await API.get(`/leads/${id}`);
+      setLead(res.data);
+      setEditForm({
+        name: res.data.name,
+        email: res.data.email,
+        phone: res.data.phone || "",
+        source: res.data.source || ""
+      });
     } catch (err) {
-      console.error("Failed to fetch lead details", err);
       setError("Failed to load lead details");
+      console.error(err);
     }
   };
 
-  // Fetch notes for this lead
   const fetchNotes = async () => {
     try {
-      // If you have a notes endpoint, use it
-      const res = await API.get(`/notes?leadId=${id}`);
+      const res = await API.get(`/leads/${id}/notes`);
       setNotes(res.data);
     } catch (err) {
       console.error("Failed to fetch notes", err);
-      // If notes endpoint doesn't exist, set empty array
       setNotes([]);
     }
   };
@@ -76,8 +65,7 @@ const LeadDetails = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      await fetchLeadDetails();
-      await fetchNotes();
+      await Promise.all([fetchLeadDetails(), fetchNotes()]);
       setLoading(false);
     };
     fetchData();
@@ -88,14 +76,12 @@ const LeadDetails = () => {
     if (!noteText.trim()) return;
 
     try {
-      // If you have a notes endpoint
-      await API.post(`/notes`, { leadId: id, text: noteText });
+      await API.post(`/leads/${id}/notes`, { text: noteText });
       setNoteText("");
       fetchNotes();
     } catch (err) {
       console.error("Failed to add note", err);
-      // If notes API doesn't exist, show message
-      alert("Notes feature coming soon!");
+      alert("Could not add note");
     }
   };
 
@@ -170,10 +156,7 @@ const LeadDetails = () => {
       <Layout>
         <div className="text-center py-12">
           <p className="text-red-600 mb-4">{error || "Lead not found"}</p>
-          <button
-            onClick={() => navigate("/leads")}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
+          <button onClick={() => navigate("/leads")} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
             ← Back to Leads
           </button>
         </div>
@@ -183,27 +166,17 @@ const LeadDetails = () => {
 
   return (
     <Layout>
-      {/* Header with back button */}
       <div className="flex items-center justify-between mb-6">
-        <button
-          onClick={() => navigate("/leads")}
-          className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-        >
+        <button onClick={() => navigate("/leads")} className="flex items-center text-gray-600 hover:text-gray-900">
           <ArrowLeft className="w-5 h-5 mr-1" />
           Back to Leads
         </button>
-        <div className="flex space-x-2">
-          <button
-            onClick={deleteLead}
-            className="flex items-center px-3 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
-          >
-            <Trash2 className="w-4 h-4 mr-1" />
-            Delete
-          </button>
-        </div>
+        <button onClick={deleteLead} className="flex items-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg">
+          <Trash2 className="w-4 h-4 mr-1" />
+          Delete
+        </button>
       </div>
 
-      {/* Lead Info Card */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
         <div className="p-6">
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
@@ -214,12 +187,7 @@ const LeadDetails = () => {
                 </div>
                 <div className="flex-1">
                   {isEditing ? (
-                    <input
-                      type="text"
-                      value={editForm.name}
-                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                      className="text-2xl font-bold bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none dark:text-white"
-                    />
+                    <input type="text" value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} className="text-2xl font-bold bg-transparent border-b border-gray-300 focus:border-blue-500 outline-none dark:text-white" />
                   ) : (
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{lead.name}</h1>
                   )}
@@ -229,7 +197,7 @@ const LeadDetails = () => {
                       {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
                     </span>
                     {lead.source && (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 text-xs">
                         <Tag className="w-3 h-3" />
                         {lead.source}
                       </span>
@@ -239,168 +207,101 @@ const LeadDetails = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex items-center gap-2">
               {isEditing ? (
                 <>
-                  <button
-                    onClick={updateLeadDetails}
-                    disabled={updating}
-                    className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                  >
+                  <button onClick={updateLeadDetails} disabled={updating} className="flex items-center px-3 py-2 bg-green-600 text-white rounded-lg">
                     <Save className="w-4 h-4 mr-1" />
                     Save
                   </button>
-                  <button
-                    onClick={() => setIsEditing(false)}
-                    className="flex items-center px-3 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                  >
+                  <button onClick={() => setIsEditing(false)} className="flex items-center px-3 py-2 bg-gray-500 text-white rounded-lg">
                     <X className="w-4 h-4 mr-1" />
                     Cancel
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center px-3 py-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
-                >
+                <button onClick={() => setIsEditing(true)} className="flex items-center px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg">
                   <Edit2 className="w-4 h-4 mr-1" />
                   Edit
                 </button>
               )}
-              
-              <select
-                value={lead.status}
-                onChange={(e) => updateStatus(e.target.value)}
-                disabled={updating}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
+              <select value={lead.status} onChange={(e) => updateStatus(e.target.value)} disabled={updating} className="px-3 py-2 border rounded-lg dark:bg-gray-700">
                 <option value="new">New</option>
                 <option value="contacted">Contacted</option>
                 <option value="converted">Converted</option>
               </select>
-              {updating && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>}
             </div>
           </div>
 
-          {/* Contact Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-100">
             <div className="flex items-center gap-3">
               <Mail className="w-5 h-5 text-gray-400" />
               <div className="flex-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
+                <p className="text-sm text-gray-500">Email</p>
                 {isEditing ? (
-                  <input
-                    type="email"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  />
+                  <input type="email" value={editForm.email} onChange={(e) => setEditForm({...editForm, email: e.target.value})} className="w-full px-2 py-1 border rounded" />
                 ) : (
-                  <a href={`mailto:${lead.email}`} className="text-gray-900 dark:text-white hover:text-blue-600">
-                    {lead.email}
-                  </a>
+                  <a href={`mailto:${lead.email}`} className="text-gray-900 hover:text-blue-600">{lead.email}</a>
                 )}
               </div>
             </div>
-            
             <div className="flex items-center gap-3">
               <Phone className="w-5 h-5 text-gray-400" />
               <div className="flex-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Phone</p>
+                <p className="text-sm text-gray-500">Phone</p>
                 {isEditing ? (
-                  <input
-                    type="tel"
-                    value={editForm.phone}
-                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                    className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="Not provided"
-                  />
+                  <input type="tel" value={editForm.phone} onChange={(e) => setEditForm({...editForm, phone: e.target.value})} className="w-full px-2 py-1 border rounded" />
                 ) : (
-                  <p className="text-gray-900 dark:text-white">{lead.phone || "Not provided"}</p>
+                  <p className="text-gray-900">{lead.phone || "Not provided"}</p>
                 )}
               </div>
             </div>
-
             <div className="flex items-center gap-3">
               <Tag className="w-5 h-5 text-gray-400" />
               <div className="flex-1">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Source</p>
+                <p className="text-sm text-gray-500">Source</p>
                 {isEditing ? (
-                  <input
-                    type="text"
-                    value={editForm.source}
-                    onChange={(e) => setEditForm({ ...editForm, source: e.target.value })}
-                    className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                    placeholder="How did they find us?"
-                  />
+                  <input type="text" value={editForm.source} onChange={(e) => setEditForm({...editForm, source: e.target.value})} className="w-full px-2 py-1 border rounded" />
                 ) : (
-                  <p className="text-gray-900 dark:text-white">{lead.source || "Not specified"}</p>
+                  <p className="text-gray-900">{lead.source || "Not specified"}</p>
                 )}
               </div>
             </div>
-            
             <div className="flex items-center gap-3">
               <Calendar className="w-5 h-5 text-gray-400" />
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Lead Created</p>
-                <p className="text-gray-900 dark:text-white">
-                  {lead.createdAt ? new Date(lead.createdAt).toLocaleString() : "Unknown"}
-                </p>
+                <p className="text-sm text-gray-500">Lead Created</p>
+                <p className="text-gray-900">{new Date(lead.createdAt).toLocaleString()}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Notes Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
             Follow-up Notes
           </h2>
 
-          {/* Add Note Form */}
           <form onSubmit={addNote} className="mb-6">
             <div className="flex gap-2">
-              <input
-                type="text"
-                value={noteText}
-                onChange={(e) => setNoteText(e.target.value)}
-                placeholder="Add a follow-up note..."
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                required
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Add Note
-              </button>
+              <input type="text" value={noteText} onChange={(e) => setNoteText(e.target.value)} placeholder="Add a follow-up note..." className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required />
+              <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Add Note</button>
             </div>
           </form>
 
-          {/* Notes Timeline */}
           {notes.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              No notes yet. Add a follow-up note to track your communication.
-            </div>
+            <div className="text-center py-8 text-gray-500">No notes yet. Add a follow-up note to track your communication.</div>
           ) : (
             <div className="space-y-4">
               {notes.map((note) => (
-                <div
-                  key={note._id}
-                  className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-100 dark:border-gray-700"
-                >
+                <div key={note._id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border">
                   <p className="text-gray-800 dark:text-gray-200 mb-2">{note.text}</p>
-                  <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
-                    <span>
-                      {note.createdBy || "Admin"}
-                    </span>
-                    <span>
-                      {note.createdAt ? new Date(note.createdAt).toLocaleString() : "Just now"}
-                    </span>
+                  <div className="flex justify-between items-center text-sm text-gray-500">
+                    <span>{note.createdBy || "Admin"}</span>
+                    <span>{new Date(note.createdAt).toLocaleString()}</span>
                   </div>
                 </div>
               ))}

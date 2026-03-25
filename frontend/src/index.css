@@ -3,7 +3,42 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light mode (default) */
+  :root {
+    --bg-primary: 249, 250, 251;
+    --bg-secondary: 255, 255, 255;
+    --text-primary: 17, 24, 39;
+    --text-secondary: 107, 114, 128;
+  }
+  
+  /* Dark mode */
+  .dark {
+    --bg-primary: 17, 24, 39;
+    --bg-secondary: 31, 41, 55;
+    --text-primary: 243, 244, 246;
+    --text-secondary: 156, 163, 175;
+  }
+  
   body {
     @apply bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
 }

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const leadSchema = new mongoose.Schema({
   name: {
@@ -48,4 +48,5 @@ leadSchema.pre('save', function(next) {
   next();
 });
 
-export default mongoose.model("Lead", leadSchema);
+const Lead = mongoose.model('Lead', leadSchema);
+export default Lead;

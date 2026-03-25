@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
-// Import needed
-import { Link } from "react-router-dom";
-import { Menu } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useDarkMode } from "../context/DarkModeContext";
 import { 
   LogOut, 
   Moon, 
   Sun, 
+  Menu, 
   User,
   Settings,
   ChevronDown,
@@ -15,44 +15,31 @@ import {
 
 const Header = ({ onMenuClick }) => {
   const navigate = useNavigate();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const location = useLocation();
+  const { user, logout } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  // Check for saved theme preference on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-    } else if (savedTheme === "light") {
-      setIsDarkMode(false);
-      document.documentElement.classList.remove("dark");
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setIsDarkMode(prefersDark);
-      if (prefersDark) {
-        document.documentElement.classList.add("dark");
-      }
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    if (isDarkMode) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-      setIsDarkMode(false);
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-      setIsDarkMode(true);
-    }
+  const handleLogout = () => {
+    logout();
+    navigate("/");
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("token");
-    setIsUserMenuOpen(false);
-    navigate("/");
+  const getPageTitle = () => {
+    const titles = {
+      '/dashboard': 'Dashboard',
+      '/leads': 'Lead Management',
+      '/analytics': 'Analytics',
+      '/profile': 'Profile Settings',
+      '/leads/': 'Lead Details'
+    };
+    
+    // Check if the current path starts with /leads/ and has more than just /leads
+    if (location.pathname.startsWith('/leads/') && location.pathname !== '/leads') {
+      return 'Lead Details';
+    }
+    
+    return titles[location.pathname] || 'CRM System';
   };
 
   return (
@@ -70,10 +57,10 @@ const Header = ({ onMenuClick }) => {
             </button>
           </div>
 
-          {/* Center - Page Title (Optional) */}
+          {/* Center - Page Title */}
           <div className="flex-1 text-center md:text-left md:flex-none">
             <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Welcome Back, Admin!
+              {getPageTitle()}
             </h1>
           </div>
 
@@ -116,8 +103,10 @@ const Header = ({ onMenuClick }) => {
                   />
                   <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg py-2 z-50 border border-gray-200 dark:border-gray-700">
                     <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Admin User</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">admin@leadcrm.com</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {user?.fullName || user?.username}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
                     </div>
                     <Link
                       to="/profile"
@@ -136,7 +125,7 @@ const Header = ({ onMenuClick }) => {
                       <span>Settings</span>
                     </Link>
                     <button
-                      onClick={logout}
+                      onClick={handleLogout}
                       className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                     >
                       <LogOut className="w-4 h-4" />
@@ -152,7 +141,5 @@ const Header = ({ onMenuClick }) => {
     </header>
   );
 };
-
-
 
 export default Header;

@@ -1,14 +1,20 @@
-import express  from 'express';
+import express from 'express';
 import multer from 'multer';
-import path  from 'path';
-import protect from "../middleware/authMiddleware.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 import {
   updateProfile,
   changePassword,
   uploadAvatar,
   removeAvatar
-}  from '../controllers/profileController.js';
+} from '../controllers/profileController.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const router = express.Router();
+
 // Configure multer for file upload
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -38,9 +44,9 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-router.put('/profile', protect, updateProfile);
-router.put('/change-password', protect, changePassword);
-router.post('/upload-avatar', protect, upload.single('avatar'), uploadAvatar);
-router.delete('/avatar', protect, removeAvatar);
+router.put('/profile', authenticateToken, updateProfile);
+router.put('/change-password', authenticateToken, changePassword);
+router.post('/upload-avatar', authenticateToken, upload.single('avatar'), uploadAvatar);
+router.delete('/avatar', authenticateToken, removeAvatar);
 
 export default router;

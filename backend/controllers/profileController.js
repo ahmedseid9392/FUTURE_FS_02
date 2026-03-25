@@ -1,9 +1,13 @@
-import User  from '../models/User.js';
+import User from '../models/User.js';
 import fs from 'fs';
-import  path from 'path';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Update Profile
- export const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
   try {
     const { fullName, username, email } = req.body;
     
@@ -76,7 +80,7 @@ export const uploadAvatar = async (req, res) => {
     }
     
     // Update user avatar
- const updatedUser = await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       { avatar: avatarUrl },
       { new: true }
@@ -111,4 +115,3 @@ export const removeAvatar = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-

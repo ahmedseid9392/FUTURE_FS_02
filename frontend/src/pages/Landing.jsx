@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api";
+import { useAuth } from "../context/AuthContext";
+import { useDarkMode } from "../context/DarkModeContext";
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -20,11 +21,15 @@ import {
   EyeOff,
   UserPlus,
   LogIn,
-  AlertCircle
+  AlertCircle,
+  Moon,
+  Sun
 } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { login, register, user } = useAuth();
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
@@ -39,6 +44,7 @@ const Landing = () => {
   });
   
   const [registerForm, setRegisterForm] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -51,8 +57,13 @@ const Landing = () => {
       setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
+    
+    if (user) {
+      navigate("/dashboard");
+    }
+    
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [user, navigate]);
 
   const handleLoginChange = (e) => {
     setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
@@ -73,6 +84,10 @@ const Landing = () => {
       setError("Password must be at least 6 characters");
       return false;
     }
+    if (!registerForm.username.trim()) {
+      setError("Username is required");
+      return false;
+    }
     if (!registerForm.email.includes('@')) {
       setError("Please enter a valid email");
       return false;
@@ -85,25 +100,16 @@ const Landing = () => {
     setLoading(true);
     setError("");
 
-    try {
-      const res = await API.post("/auth/login", {
-        email: loginForm.email,
-        password: loginForm.password
-      });
-
-      if (remember) {
-        localStorage.setItem("token", res.data.token);
-      } else {
-        sessionStorage.setItem("token", res.data.token);
-      }
-
+    const result = await login(loginForm.email, loginForm.password, remember);
+    
+    if (result.success) {
       setShowAuthModal(false);
       navigate("/dashboard");
-    } catch (error) {
-      setError(error.response?.data?.message || "Invalid credentials");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.message);
     }
+    
+    setLoading(false);
   };
 
   const handleRegister = async (e) => {
@@ -114,21 +120,20 @@ const Landing = () => {
     setLoading(true);
     setError("");
 
-    try {
-      const res = await API.post("/auth/register", {
-        email: registerForm.email,
-        password: registerForm.password
-      });
-
-      // Store token from registration response
-      localStorage.setItem("token", res.data.token);
+    const result = await register(
+      registerForm.username,
+      registerForm.email,
+      registerForm.password
+    );
+    
+    if (result.success) {
       setShowAuthModal(false);
       navigate("/dashboard");
-    } catch (error) {
-      setError(error.response?.data?.message || "Registration failed. Please try again.");
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.message);
     }
+    
+    setLoading(false);
   };
 
   const features = [
@@ -196,11 +201,13 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 transition-colors duration-200">
       
       {/* Navigation Bar */}
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md' : 'bg-transparent'
+        isScrolled 
+          ? 'bg-white dark:bg-gray-900 shadow-md' 
+          : 'bg-transparent'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -212,19 +219,25 @@ const Landing = () => {
               </div>
             </div>
             <div className="hidden md:flex space-x-8">
-              <a href="#features" className="text-gray-700 hover:text-blue-600 transition">Features</a>
-              <a href="#testimonials" className="text-gray-700 hover:text-blue-600 transition">Testimonials</a>
-              <a href="#stats" className="text-gray-700 hover:text-blue-600 transition">Stats</a>
+              <a href="#features" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Features</a>
+              <a href="#testimonials" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Testimonials</a>
+              <a href="#stats" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">Stats</a>
             </div>
             <div className="flex gap-3">
+              <button
+                onClick={toggleDarkMode}
+                className="p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                aria-label="Toggle dark mode"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
               <button
                 onClick={() => {
                   setIsLoginMode(true);
                   setShowAuthModal(true);
                   setError("");
-                  setLoginForm({ email: "", password: "" });
                 }}
-                className="text-gray-700 hover:text-blue-600 transition px-4 py-2"
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition px-4 py-2"
               >
                 Sign In
               </button>
@@ -233,7 +246,6 @@ const Landing = () => {
                   setIsLoginMode(false);
                   setShowAuthModal(true);
                   setError("");
-                  setRegisterForm({ email: "", password: "", confirmPassword: "" });
                 }}
                 className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm"
               >
@@ -244,20 +256,20 @@ const Landing = () => {
         </div>
       </nav>
 
-      {/* HERO SECTION */}
+      {/* Hero Section */}
       <section className="pt-32 pb-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center">
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-6">
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
               <Zap className="w-4 h-4 mr-1" />
               Boost Your Sales by 40%
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
               Transform Your Lead
               <br />
               Management Process
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
               The all-in-one CRM solution for agencies, freelancers, and small businesses. 
               Track, manage, and convert leads into loyal clients effortlessly.
             </p>
@@ -266,7 +278,6 @@ const Landing = () => {
                 onClick={() => {
                   setIsLoginMode(false);
                   setShowAuthModal(true);
-                  setRegisterForm({ email: "", password: "", confirmPassword: "" });
                 }}
                 className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg hover:shadow-xl inline-flex items-center justify-center group"
               >
@@ -275,19 +286,19 @@ const Landing = () => {
               </button>
               <a
                 href="#features"
-                className="border-2 border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:border-blue-600 hover:text-blue-600 transition inline-flex items-center justify-center"
+                className="border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-8 py-3 rounded-lg hover:border-blue-600 hover:text-blue-600 dark:hover:border-blue-400 dark:hover:text-blue-400 transition inline-flex items-center justify-center"
               >
                 Learn More
               </a>
             </div>
             
-            {/* Dashboard Preview Placeholder */}
+            {/* Dashboard Preview */}
             <div className="mt-16 relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
-              <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl shadow-2xl border border-gray-200 h-96 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-950 via-transparent to-transparent"></div>
+              <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 h-96 flex items-center justify-center">
                 <div className="text-center">
-                  <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">Dashboard Preview</p>
+                  <BarChart3 className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">Dashboard Preview</p>
                 </div>
               </div>
             </div>
@@ -295,31 +306,31 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* STATS SECTION */}
-      <section id="stats" className="py-16 bg-white border-y border-gray-100">
+      {/* Stats Section */}
+      <section id="stats" className="py-16 bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="flex items-center justify-center text-blue-600 mb-2">
+                <div className="flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2">
                   {stat.icon}
                 </div>
-                <div className="text-3xl font-bold text-gray-900">{stat.number}</div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
+                <div className="text-3xl font-bold text-gray-900 dark:text-white">{stat.number}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FEATURES SECTION */}
+      {/* Features Section */}
       <section id="features" className="py-20 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
               Powerful Features for Modern Businesses
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Everything you need to manage leads effectively and grow your business
             </p>
           </div>
@@ -328,44 +339,44 @@ const Landing = () => {
             {features.map((feature, index) => (
               <div 
                 key={index} 
-                className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 group"
+                className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700 group"
               >
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS SECTION */}
-      <section id="testimonials" className="py-20 bg-gray-50 px-4">
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 bg-gray-50 dark:bg-gray-900/50 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900 dark:text-white">
               Trusted by Businesses Worldwide
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               See what our customers have to say about their experience
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="flex mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
                   ))}
                 </div>
-                <p className="text-gray-700 mb-4 italic">"{testimonial.content}"</p>
+                <p className="text-gray-700 dark:text-gray-300 mb-4 italic">"{testimonial.content}"</p>
                 <div>
-                  <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                  <p className="text-sm text-gray-600">{testimonial.role}</p>
-                  <p className="text-xs text-gray-500">{testimonial.company}</p>
+                  <p className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500">{testimonial.company}</p>
                 </div>
               </div>
             ))}
@@ -373,7 +384,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* CTA SECTION */}
+      {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -386,7 +397,6 @@ const Landing = () => {
             onClick={() => {
               setIsLoginMode(false);
               setShowAuthModal(true);
-              setRegisterForm({ email: "", password: "", confirmPassword: "" });
             }}
             className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-gray-100 transition shadow-lg hover:shadow-xl font-semibold"
           >
@@ -399,8 +409,8 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-gray-900 text-white py-12 px-4">
+      {/* Footer */}
+      <footer className="bg-gray-900 dark:bg-gray-950 text-white py-12 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
@@ -439,44 +449,41 @@ const Landing = () => {
         </div>
       </footer>
 
-      {/* AUTH MODAL */}
+      {/* Auth Modal */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 {isLoginMode ? (
-                  <LogIn className="w-5 h-5 text-blue-600" />
+                  <LogIn className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 ) : (
-                  <UserPlus className="w-5 h-5 text-green-600" />
+                  <UserPlus className="w-5 h-5 text-green-600 dark:text-green-400" />
                 )}
-                <h2 className="text-xl font-bold">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                   {isLoginMode ? "Welcome Back" : "Create Account"}
                 </h2>
               </div>
               <button
                 onClick={() => setShowAuthModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-6">
               {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start">
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start">
                   <AlertCircle className="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-red-700">{error}</p>
+                  <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
                 </div>
               )}
 
               {isLoginMode ? (
-                // Login Form
                 <form onSubmit={handleLogin}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Email Address
                     </label>
                     <input
@@ -484,14 +491,14 @@ const Landing = () => {
                       name="email"
                       value={loginForm.email}
                       onChange={handleLoginChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       placeholder="Enter your email"
                       required
                     />
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Password
                     </label>
                     <div className="relative">
@@ -500,14 +507,14 @@ const Landing = () => {
                         name="password"
                         value={loginForm.password}
                         onChange={handleLoginChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                         placeholder="Enter your password"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -520,14 +527,14 @@ const Landing = () => {
                         type="checkbox"
                         checked={remember}
                         onChange={(e) => setRemember(e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                       />
-                      <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                      <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
                     </label>
                     <button
                       type="button"
                       onClick={() => navigate("/forgot")}
-                      className="text-sm text-blue-600 hover:text-blue-700"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
                     >
                       Forgot Password?
                     </button>
@@ -542,7 +549,7 @@ const Landing = () => {
                   </button>
 
                   <div className="mt-4 text-center">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Don't have an account?{" "}
                       <button
                         type="button"
@@ -550,9 +557,8 @@ const Landing = () => {
                           setIsLoginMode(false);
                           setError("");
                           setLoginForm({ email: "", password: "" });
-                          setRegisterForm({ email: "", password: "", confirmPassword: "" });
                         }}
-                        className="text-blue-600 hover:text-blue-700 font-medium"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"
                       >
                         Create Account
                       </button>
@@ -560,10 +566,24 @@ const Landing = () => {
                   </div>
                 </form>
               ) : (
-                // Register Form (matching your Register component)
                 <form onSubmit={handleRegister}>
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={registerForm.username}
+                      onChange={handleRegisterChange}
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      placeholder="Choose a username"
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Email Address
                     </label>
                     <input
@@ -571,14 +591,14 @@ const Landing = () => {
                       name="email"
                       value={registerForm.email}
                       onChange={handleRegisterChange}
-                      className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                       placeholder="Enter your email"
                       required
                     />
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Password
                     </label>
                     <div className="relative">
@@ -587,14 +607,14 @@ const Landing = () => {
                         name="password"
                         value={registerForm.password}
                         onChange={handleRegisterChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                         placeholder="Create a password (min. 6 characters)"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -602,7 +622,7 @@ const Landing = () => {
                   </div>
 
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Confirm Password
                     </label>
                     <div className="relative">
@@ -611,14 +631,14 @@ const Landing = () => {
                         name="confirmPassword"
                         value={registerForm.confirmPassword}
                         onChange={handleRegisterChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                         placeholder="Confirm your password"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                       >
                         {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -634,17 +654,16 @@ const Landing = () => {
                   </button>
 
                   <div className="mt-4 text-center">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       Already have an account?{" "}
                       <button
                         type="button"
                         onClick={() => {
                           setIsLoginMode(true);
                           setError("");
-                          setRegisterForm({ email: "", password: "", confirmPassword: "" });
-                          setLoginForm({ email: "", password: "" });
+                          setRegisterForm({ username: "", email: "", password: "", confirmPassword: "" });
                         }}
-                        className="text-blue-600 hover:text-blue-700 font-medium"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"
                       >
                         Sign In
                       </button>

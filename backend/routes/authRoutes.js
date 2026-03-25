@@ -1,23 +1,11 @@
-import express from "express";
-import {
-  register, login, getProfile,
-  forgotPassword,
-  resetPassword,
-} from "../controllers/authController.js";
-
-import protect from "../middleware/authMiddleware.js";
+import express from 'express';
+import { register, login, getProfile } from '../controllers/authController.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-
-
-
-// 👇 ADMIN CRUD (protected)
 router.post('/register', register);
 router.post('/login', login);
-router.get('/profile',  protect, getProfile);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:token", resetPassword);
-
+router.get('/profile', authenticateToken, getProfile);
 
 export default router;

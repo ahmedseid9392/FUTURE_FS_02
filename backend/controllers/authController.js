@@ -4,8 +4,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 
 
-// 🔑 LOGIN
-// Generate JWT Token
+
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email, role: user.role },
@@ -25,11 +24,19 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
     
-    // Create user
-    const user = new User({ username, email, password });
+    // Hash password manually
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    
+    // Create user with hashed password
+    const user = new User({ 
+      username, 
+      email, 
+      password: hashedPassword
+    });
+    
     await user.save();
     
-    // Generate token
     const token = generateToken(user);
     
     res.status(201).json({
@@ -49,9 +56,11 @@ export const register = async (req, res) => {
 };
 
 // Login User
- export const login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    
+    console.log('Login attempt:', email);
     
     // Find user
     const user = await User.findOne({ email });
@@ -59,8 +68,10 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
     
-    // Check password
-    const isValid = await user.comparePassword(password);
+    // Compare password
+    const isValid = await bcrypt.compare(password, user.password);
+    console.log('Password valid:', isValid);
+    
     if (!isValid) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
@@ -69,7 +80,6 @@ export const register = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
     
-    // Generate token
     const token = generateToken(user);
     
     res.json({
@@ -102,7 +112,6 @@ export const getProfile = async (req, res) => {
     console.error('Get profile error:', error);
     res.status(500).json({ message: 'Server error' });
   }
-
 };
 
 export const forgotPassword = async (req, res) => {
