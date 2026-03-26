@@ -8,6 +8,10 @@ import LeadDetails from './pages/LeadDetails';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
+import Settings from './pages/Settings';
+import Calendar from './pages/Calendar';
+import Reports from './pages/Reports';
+import Notifications from './pages/Notifications';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -68,7 +72,29 @@ function AppRoutes() {
           <Profile />
         </ProtectedRoute>
       } />
+      <Route path="/settings" element={
+  <ProtectedRoute>
+    <Settings />
+  </ProtectedRoute>
+} />
+<Route path="/calendar" element={
+  <ProtectedRoute>
+    <Calendar />
+  </ProtectedRoute>
+} />
+
+<Route path="/reports" element={
+  <ProtectedRoute>
+    <Reports />
+  </ProtectedRoute>
+} />
+<Route path="/notifications" element={
+  <ProtectedRoute>
+    <Notifications />
+  </ProtectedRoute>
+} />
     </Routes>
+
   );
 }
 
