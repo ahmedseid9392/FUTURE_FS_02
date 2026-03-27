@@ -180,3 +180,147 @@ export const sendEmail = async ({ to, subject, text, from, conversationId, sende
 export const generateConversationId = () => {
   return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
+
+
+// Send password reset email
+export const sendPasswordResetEmail = async (to, resetToken, userName) => {
+  try {
+    const transporter = createTransporter();
+    
+    // Get frontend URL from environment, fallback to localhost
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+    
+    console.log('Sending reset link to:', to);
+    console.log('Reset link:', resetLink);
+    
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+          }
+          .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+          }
+          .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 24px;
+          }
+          .content {
+            padding: 30px 20px;
+          }
+          .reset-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 600;
+          }
+          .reset-link {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            word-break: break-all;
+            font-size: 12px;
+            margin: 15px 0;
+          }
+          .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin: 20px 0;
+            font-size: 14px;
+          }
+          .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Password Reset Request</h1>
+          </div>
+          
+          <div class="content">
+            <p>Hello <strong>${userName || 'there'}</strong>,</p>
+            
+            <p>We received a request to reset your password for your LeadCRM account. Click the button below to create a new password:</p>
+            
+            <div style="text-align: center;">
+              <a href="${resetLink}" class="reset-button">Reset Password</a>
+            </div>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <div class="reset-link">
+              ${resetLink}
+            </div>
+            
+            <div class="warning">
+              <strong>⚠️ Important:</strong> This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+            </div>
+            
+            <p>For security reasons, please do not share this link with anyone.</p>
+            
+            <hr style="margin: 20px 0;">
+            
+            <p style="font-size: 14px; color: #666;">
+              Best regards,<br>
+              <strong>LeadCRM Team</strong>
+            </p>
+          </div>
+          
+          <div class="footer">
+            <p>This is an automated message from LeadCRM. Please do not reply to this email.</p>
+            <p>© ${new Date().getFullYear()} LeadCRM. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const mailOptions = {
+      from: `"LeadCRM Support" <${process.env.EMAIL_USER}>`,
+      to,
+      subject: 'Reset Your Password - LeadCRM',
+      text: `Reset your password by clicking this link: ${resetLink}. This link expires in 1 hour.`,
+      html: emailHtml
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Password reset email sent:', info.messageId);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Password reset email error:', error);
+    throw error;
+  }
+};

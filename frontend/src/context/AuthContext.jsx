@@ -58,6 +58,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Google Login
+  const googleLogin = async (userData) => {
+    setUser(userData);
+    return { success: true };
+  };
+
   const register = async (username, email, password) => {
     try {
       const res = await API.post('/auth/register', { username, email, password });
@@ -107,48 +113,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const uploadAvatar = async (file) => {
-    const formData = new FormData();
-    formData.append('avatar', file);
-    
-    try {
-      const res = await API.post('/auth/upload-avatar', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      setUser(res.data.user);
-      return { success: true, avatarUrl: res.data.avatarUrl };
-    } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Upload failed' 
-      };
-    }
-  };
-
-  const removeAvatar = async () => {
-    try {
-      await API.delete('/auth/avatar');
-      setUser({ ...user, avatar: null });
-      return { success: true };
-    } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Remove failed' 
-      };
-    }
-  };
-
   const value = {
     user,
     loading,
     token,
     login,
+    googleLogin,
     register,
     logout,
     updateProfile,
     changePassword,
-    uploadAvatar,
-    removeAvatar,
     fetchProfile
   };
 

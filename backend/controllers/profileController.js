@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import fs from 'fs';
 import path from 'path';
+import bcrypt from "bcryptjs";
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,6 +36,7 @@ export const updateProfile = async (req, res) => {
 };
 
 // Change Password
+
 export const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -50,17 +52,19 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ message: 'Current password is incorrect' });
     }
     
-    // Update password
-    user.password = newPassword;
+    // IMPORTANT: Hash the new password before saving
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    user.password = hashedPassword;
+    
     await user.save();
     
-    res.json({ message: 'Password updated successfully' });
+    res.json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // Upload Avatar
 export const uploadAvatar = async (req, res) => {
   try {
