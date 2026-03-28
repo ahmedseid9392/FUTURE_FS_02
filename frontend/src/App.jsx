@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import HelpSupport from './pages/HelpSupport';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -105,6 +106,11 @@ function AppRoutes() {
           <Notifications />
         </ProtectedRoute>
       } />
+      <Route path="/help" element={
+  <ProtectedRoute>
+    <HelpSupport />
+  </ProtectedRoute>
+} />
     </Routes>
   );
 }
