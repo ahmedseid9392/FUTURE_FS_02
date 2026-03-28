@@ -31,7 +31,7 @@ import {
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { login, register, user } = useAuth();
+  const { login, googleLogin,register, user } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -127,9 +127,18 @@ const Landing = () => {
     setLoading(false);
   };
 
-  const handleGoogleSuccess = (userData) => {
+  const handleGoogleSuccess = async (userData) => {
+      try {
+        await googleLogin(userData);
   setShowAuthModal(false);
-  navigate("/dashboard");
+    setError("");
+  setTimeout(() => {
+      navigate("/dashboard");
+    }, 100);
+  } catch (error) {
+    console.error("Google login redirect error:", error);
+    setError("Login successful but redirect failed. Please try again.");
+  }
 };
 
 const handleGoogleError = (errorMessage) => {

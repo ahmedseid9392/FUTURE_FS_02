@@ -58,10 +58,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Google Login
+  // Google Login - Update this function
   const googleLogin = async (userData) => {
-    setUser(userData);
-    return { success: true };
+    try {
+      // userData already contains the user info from the API
+      setUser(userData);
+      // The token is already stored in localStorage by the GoogleButton component
+      setToken(localStorage.getItem('token'));
+      return { success: true };
+    } catch (error) {
+      console.error('Google login error:', error);
+      return { 
+        success: false, 
+        message: error.message || 'Google login failed' 
+      };
+    }
   };
 
   const register = async (username, email, password) => {
