@@ -7,7 +7,7 @@ dotenv.config();
 
 const seedAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI );
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/crm_db');
     console.log('✅ Connected to MongoDB');
 
     const plainPassword = 'Admin@123';
@@ -16,24 +16,20 @@ const seedAdmin = async () => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(plainPassword, salt);
     
-    console.log('Generated hash:', hashedPassword);
-    
     // Delete existing admin if exists
     await User.deleteOne({ email: 'admin@leadcrm.com' });
-    console.log('🗑️  Removed existing admin');
     
     // Create admin user with hashed password
     const admin = new User({
       username: 'admin',
       email: 'admin@leadcrm.com',
-      password: hashedPassword, // Use the already hashed password
+      password: hashedPassword, // Store the hashed password
       fullName: 'Admin User',
       role: 'admin',
       createdAt: new Date()
     });
     
     await admin.save();
-    console.log('✅ Admin user created successfully!');
     
     // Verify the password
     const savedAdmin = await User.findOne({ email: 'admin@leadcrm.com' });
@@ -49,16 +45,14 @@ const seedAdmin = async () => {
     console.log('='.repeat(50));
     
     if (isValid) {
-      console.log('✅ VERIFICATION: SUCCESS');
-      console.log('✅ You can now login with these credentials!');
+      console.log('✅ VERIFICATION: SUCCESS - Password is properly hashed');
     } else {
-      console.log('❌ VERIFICATION: FAILED');
+      console.log('❌ VERIFICATION: FAILED - Password hash issue');
     }
     
     process.exit(0);
   } catch (error) {
     console.error('❌ Error:', error.message);
-    console.error(error.stack);
     process.exit(1);
   }
 };

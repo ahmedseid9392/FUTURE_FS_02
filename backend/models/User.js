@@ -4,8 +4,6 @@ import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: true,
-    unique: true,
     trim: true
   },
   email: {
@@ -17,8 +15,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
-    minlength: 6
+    default: null
   },
   fullName: {
     type: String,
@@ -27,11 +24,27 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ['admin', 'user'],
-    default: 'admin'
+    default: 'user'
   },
   avatar: {
     type: String,
     default: null
+  },
+  // Google OAuth fields
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+    default: null
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,
@@ -43,10 +56,13 @@ const userSchema = new mongoose.Schema({
   }
 });
 
-// NO pre-save middleware - we'll hash in the controller
 
-// Compare password method
+
+// Compare password method - only for local auth
 userSchema.methods.comparePassword = async function(candidatePassword) {
+  if (this.authProvider !== 'local' || !this.password) {
+    return false;
+  }
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

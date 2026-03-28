@@ -8,10 +8,12 @@ import LeadDetails from './pages/LeadDetails';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
-import Settings from './pages/Settings';
 import Calendar from './pages/Calendar';
 import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 import Notifications from './pages/Notifications';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -39,6 +41,11 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
       
+      {/* Separate routes for forgot/reset password (no auth required) */}
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      
+      {/* Protected routes */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
@@ -56,11 +63,7 @@ function AppRoutes() {
           <LeadDetails />
         </ProtectedRoute>
       } />
-      <Route path="/messages" element={
-  <ProtectedRoute>
-    <Messages />
-  </ProtectedRoute>
-} />
+      
       <Route path="/analytics" element={
         <ProtectedRoute>
           <Analytics />
@@ -72,29 +75,37 @@ function AppRoutes() {
           <Profile />
         </ProtectedRoute>
       } />
+      
+      <Route path="/messages" element={
+        <ProtectedRoute>
+          <Messages />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/calendar" element={
+        <ProtectedRoute>
+          <Calendar />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/reports" element={
+        <ProtectedRoute>
+          <Reports />
+        </ProtectedRoute>
+      } />
+      
       <Route path="/settings" element={
-  <ProtectedRoute>
-    <Settings />
-  </ProtectedRoute>
-} />
-<Route path="/calendar" element={
-  <ProtectedRoute>
-    <Calendar />
-  </ProtectedRoute>
-} />
-
-<Route path="/reports" element={
-  <ProtectedRoute>
-    <Reports />
-  </ProtectedRoute>
-} />
-<Route path="/notifications" element={
-  <ProtectedRoute>
-    <Notifications />
-  </ProtectedRoute>
-} />
+        <ProtectedRoute>
+          <Settings />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/notifications" element={
+        <ProtectedRoute>
+          <Notifications />
+        </ProtectedRoute>
+      } />
     </Routes>
-
   );
 }
 
