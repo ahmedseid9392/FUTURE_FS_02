@@ -44,6 +44,13 @@ const conversationSchema = new mongoose.Schema({
     enum: ['active', 'archived'],
     default: 'active'
   },
+  // User-specific field
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   createdAt: {
     type: Date,
     default: Date.now

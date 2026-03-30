@@ -24,20 +24,23 @@ import {
   LogIn,
   AlertCircle,
   Moon,
-  Sun
+  Sun,
+  ArrowLeft
 } from "lucide-react";
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { login, register, user } = useAuth();
+  const { login, googleLogin,register, user } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   
   const [loginForm, setLoginForm] = useState({
     email: "",
@@ -51,7 +54,12 @@ const Landing = () => {
     confirmPassword: ""
   });
   
+  const [forgotPasswordForm, setForgotPasswordForm] = useState({
+    email: ""
+  });
+  
   const [remember, setRemember] = useState(false);
+  const [forgotPasswordSubmitted, setForgotPasswordSubmitted] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,6 +81,11 @@ const Landing = () => {
 
   const handleRegisterChange = (e) => {
     setRegisterForm({ ...registerForm, [e.target.name]: e.target.value });
+    setError("");
+  };
+
+  const handleForgotPasswordChange = (e) => {
+    setForgotPasswordForm({ ...forgotPasswordForm, [e.target.name]: e.target.value });
     setError("");
   };
 
@@ -113,6 +126,25 @@ const Landing = () => {
     setLoading(false);
   };
 
+  const handleGoogleSuccess = async (userData) => {
+      try {
+        await googleLogin(userData);
+  setShowAuthModal(false);
+    setError("");
+  setTimeout(() => {
+      navigate("/dashboard");
+    }, 100);
+  } catch (error) {
+    console.error("Google login redirect error:", error);
+    setError("Login successful but redirect failed. Please try again.");
+  }
+};
+
+const handleGoogleError = (errorMessage) => {
+  setError(errorMessage);
+  setTimeout(() => setError(""), 3000);
+};
+
   const handleRegister = async (e) => {
     e.preventDefault();
     
@@ -135,6 +167,37 @@ const Landing = () => {
     }
     
     setLoading(false);
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    
+    if (!forgotPasswordForm.email) {
+      setError("Please enter your email address");
+      return;
+    }
+    
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+    
+    try {
+      await API.post("/auth/forgot-password", { email: forgotPasswordForm.email });
+      setForgotPasswordSubmitted(true);
+      setSuccessMessage("If your email is registered, you will receive a password reset link.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForgotPassword = () => {
+    setShowForgotPassword(false);
+    setForgotPasswordSubmitted(false);
+    setForgotPasswordForm({ email: "" });
+    setError("");
+    setSuccessMessage("");
   };
 
   const features = [
@@ -235,8 +298,10 @@ const Landing = () => {
               <button
                 onClick={() => {
                   setIsLoginMode(true);
+                  setShowForgotPassword(false);
                   setShowAuthModal(true);
                   setError("");
+                  setSuccessMessage("");
                 }}
                 className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition px-4 py-2"
               >
@@ -245,8 +310,10 @@ const Landing = () => {
               <button
                 onClick={() => {
                   setIsLoginMode(false);
+                  setShowForgotPassword(false);
                   setShowAuthModal(true);
                   setError("");
+                  setSuccessMessage("");
                 }}
                 className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm"
               >
@@ -278,6 +345,7 @@ const Landing = () => {
               <button
                 onClick={() => {
                   setIsLoginMode(false);
+                  setShowForgotPassword(false);
                   setShowAuthModal(true);
                 }}
                 className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg hover:shadow-xl inline-flex items-center justify-center group"
@@ -398,6 +466,7 @@ const Landing = () => {
           <button
             onClick={() => {
               setIsLoginMode(false);
+              setShowForgotPassword(false);
               setShowAuthModal(true);
             }}
             className="inline-flex items-center bg-white text-blue-600 px-8 py-3 rounded-lg hover:bg-gray-100 transition shadow-lg hover:shadow-xl font-semibold"
@@ -457,17 +526,35 @@ const Landing = () => {
           <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative">
             <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                {isLoginMode ? (
-                  <LogIn className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                ) : (
-                  <UserPlus className="w-5 h-5 text-green-600 dark:text-green-400" />
+                {!showForgotPassword && (
+                  <>
+                    {isLoginMode ? (
+                      <LogIn className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    ) : (
+                      <UserPlus className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    )}
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      {isLoginMode ? "Welcome Back" : "Create Account"}
+                    </h2>
+                  </>
                 )}
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {isLoginMode ? "Welcome Back" : "Create Account"}
-                </h2>
+                {showForgotPassword && (
+                  <>
+                    <ArrowLeft className="w-5 h-5 text-blue-600 dark:text-blue-400 cursor-pointer" onClick={resetForgotPassword} />
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Reset Password
+                    </h2>
+                  </>
+                )}
               </div>
               <button
-                onClick={() => setShowAuthModal(false)}
+                onClick={() => {
+                  setShowAuthModal(false);
+                  setShowForgotPassword(false);
+                  setForgotPasswordSubmitted(false);
+                  setError("");
+                  setSuccessMessage("");
+                }}
                 className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
               >
                 <X className="w-5 h-5" />
@@ -482,196 +569,292 @@ const Landing = () => {
                 </div>
               )}
 
-              {isLoginMode ? (
-                <form onSubmit={handleLogin}>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={loginForm.email}
-                      onChange={handleLoginChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </div>
+              {successMessage && (
+                <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start">
+                  <CheckCircle className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-green-700 dark:text-green-400">{successMessage}</p>
+                </div>
+              )}
 
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Password
-                    </label>
-                    <div className="relative">
+              {!showForgotPassword ? (
+                <>
+                  {isLoginMode ? (
+                    // Login Form
+                    <form onSubmit={handleLogin}>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={loginForm.email}
+                          onChange={handleLoginChange}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="Enter your email"
+                          required
+                        />
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            value={loginForm.password}
+                            onChange={handleLoginChange}
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                            placeholder="Enter your password"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between mb-6">
+                        <label className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={remember}
+                            onChange={(e) => setRemember(e.target.checked)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                          />
+                          <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowForgotPassword(true)}
+                          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
+                        >
+                          Forgot Password?
+                        </button>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? "Signing in..." : "Sign In"}
+                      </button>
+                      <div className="relative my-4">
+  <div className="absolute inset-0 flex items-center">
+    <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+  </div>
+  <div className="relative flex justify-center text-sm">
+    <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+      Or continue with
+    </span>
+  </div>
+</div>
+
+<GoogleButton 
+  onSuccess={handleGoogleSuccess}
+  onError={handleGoogleError}
+  buttonText="Sign in with Google"
+/>
+
+                      <div className="mt-4 text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Don't have an account?{" "}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsLoginMode(false);
+                              setError("");
+                              setLoginForm({ email: "", password: "" });
+                            }}
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"
+                          >
+                            Create Account
+                          </button>
+                        </p>
+                      </div>
+                    </form>
+                  ) : (
+                    // Register Form
+                    <form onSubmit={handleRegister}>
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Username
+                        </label>
+                        <input
+                          type="text"
+                          name="username"
+                          value={registerForm.username}
+                          onChange={handleRegisterChange}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="Choose a username"
+                          required
+                        />
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={registerForm.email}
+                          onChange={handleRegisterChange}
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                          placeholder="Enter your email"
+                          required
+                        />
+                      </div>
+
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            value={registerForm.password}
+                            onChange={handleRegisterChange}
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                            placeholder="Create a password (min. 6 characters)"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Confirm Password
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            value={registerForm.confirmPassword}
+                            onChange={handleRegisterChange}
+                            className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                            placeholder="Confirm your password"
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                          >
+                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? "Creating Account..." : "Create Account"}
+                      </button>
+
+                      <div className="mt-4 text-center">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Already have an account?{" "}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsLoginMode(true);
+                              setError("");
+                              setRegisterForm({ username: "", email: "", password: "", confirmPassword: "" });
+                            }}
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"
+                          >
+                            Sign In
+                          </button>
+                        </p>
+                      </div>
+                    </form>
+                  )}
+                </>
+              ) : (
+                // Forgot Password Form
+                !forgotPasswordSubmitted ? (
+                  <form onSubmit={handleForgotPassword}>
+                    <div className="text-center mb-6">
+                      <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Mail className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        Enter your email address and we'll send you a link to reset your password.
+                      </p>
+                    </div>
+
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Email Address
+                      </label>
                       <input
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        value={loginForm.password}
-                        onChange={handleLoginChange}
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                        placeholder="Enter your password"
+                        type="email"
+                        name="email"
+                        value={forgotPasswordForm.email}
+                        onChange={handleForgotPasswordChange}
+                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        placeholder="admin@leadcrm.com"
                         required
                       />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? "Sending..." : "Send Reset Link"}
+                    </button>
+
+                    <div className="mt-4 text-center">
                       <button
                         type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        onClick={() => setShowForgotPassword(false)}
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        Back to Sign In
                       </button>
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-6">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={remember}
-                        onChange={(e) => setRemember(e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-                      />
-                      <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
-                    </label>
+                  </form>
+                ) : (
+                  // Success Message
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Check Your Email</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      We've sent a password reset link to <strong className="text-gray-900 dark:text-white">{forgotPasswordForm.email}</strong>
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
+                      The link will expire in 1 hour. If you don't see it, check your spam folder.
+                    </p>
                     <button
-                      type="button"
-                      onClick={() => navigate("/forgot")}
-                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
+                      onClick={resetForgotPassword}
+                      className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
                     >
-                      Forgot Password?
+                      Back to Sign In
                     </button>
                   </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? "Signing in..." : "Sign In"}
-                  </button>
-
-                  <div className="mt-4 text-center">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Don't have an account?{" "}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsLoginMode(false);
-                          setError("");
-                          setLoginForm({ email: "", password: "" });
-                        }}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"
-                      >
-                        Create Account
-                      </button>
-                    </p>
-                  </div>
-                </form>
-              ) : (
-                <form onSubmit={handleRegister}>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      name="username"
-                      value={registerForm.username}
-                      onChange={handleRegisterChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="Choose a username"
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={registerForm.email}
-                      onChange={handleRegisterChange}
-                      className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </div>
-
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        value={registerForm.password}
-                        onChange={handleRegisterChange}
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                        placeholder="Create a password (min. 6 characters)"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Confirm Password
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={showConfirmPassword ? "text" : "password"}
-                        name="confirmPassword"
-                        value={registerForm.confirmPassword}
-                        onChange={handleRegisterChange}
-                        className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                        placeholder="Confirm your password"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? "Creating Account..." : "Create Account"}
-                  </button>
-
-                  <div className="mt-4 text-center">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Already have an account?{" "}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsLoginMode(true);
-                          setError("");
-                          setRegisterForm({ username: "", email: "", password: "", confirmPassword: "" });
-                        }}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 font-medium"
-                      >
-                        Sign In
-                      </button>
-                    </p>
-                  </div>
-                </form>
+                )
               )}
             </div>
           </div>
