@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
   type: {
     type: String,
     enum: ['lead', 'message', 'email', 'calendar', 'conversion', 'system'],
@@ -30,6 +25,13 @@ const notificationSchema = new mongoose.Schema({
   metadata: {
     type: Object,
     default: {}
+  },
+  // User-specific field
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
   },
   createdAt: {
     type: Date,

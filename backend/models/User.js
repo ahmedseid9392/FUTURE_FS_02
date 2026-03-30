@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
+    required: true,
+    unique: true,
     trim: true
   },
   email: {
@@ -15,6 +17,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
+    required: false, // Changed to false to allow Google users
     default: null
   },
   fullName: {
@@ -30,11 +33,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
-  // Google OAuth fields
   googleId: {
     type: String,
-    unique: true,
-    sparse: true,
     default: null
   },
   authProvider: {
@@ -58,11 +58,9 @@ const userSchema = new mongoose.Schema({
 
 
 
-// Compare password method - only for local auth
+// Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
-  if (this.authProvider !== 'local' || !this.password) {
-    return false;
-  }
+  if (!this.password) return false;
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

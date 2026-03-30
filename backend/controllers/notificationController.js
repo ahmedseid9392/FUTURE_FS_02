@@ -1,9 +1,9 @@
 import Notification from '../models/Notification.js';
 
-// Get all notifications for current user
+// Get notifications for current user
 export const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ userId: req.user.id })
+    const notifications = await Notification.find({ userId: req.user.id }) // Only get notifications for current user
       .sort({ createdAt: -1 })
       .limit(100);
     
@@ -14,13 +14,13 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-// Mark notification as read
+// Mark notification as read (check ownership)
 export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
     
     const notification = await Notification.findOneAndUpdate(
-      { _id: id, userId: req.user.id },
+      { _id: id, userId: req.user.id }, // Check ownership
       { read: true },
       { new: true }
     );
@@ -36,7 +36,7 @@ export const markAsRead = async (req, res) => {
   }
 };
 
-// Mark all notifications as read
+// Mark all notifications as read for current user
 export const markAllAsRead = async (req, res) => {
   try {
     await Notification.updateMany(
@@ -51,14 +51,14 @@ export const markAllAsRead = async (req, res) => {
   }
 };
 
-// Delete notification
+// Delete notification (check ownership)
 export const deleteNotification = async (req, res) => {
   try {
     const { id } = req.params;
     
     const notification = await Notification.findOneAndDelete({
       _id: id,
-      userId: req.user.id
+      userId: req.user.id // Check ownership
     });
     
     if (!notification) {
@@ -72,7 +72,7 @@ export const deleteNotification = async (req, res) => {
   }
 };
 
-// Create notification (utility function for other controllers)
+// Create notification for a specific user (utility function)
 export const createNotification = async (userId, type, title, message, relatedId = null, metadata = {}) => {
   try {
     const notification = new Notification({

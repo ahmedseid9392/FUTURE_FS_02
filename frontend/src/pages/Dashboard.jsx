@@ -13,7 +13,8 @@ import {
   Activity,
   BarChart3,
   Mail,
-  PieChart
+  PieChart,
+  Download
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -32,39 +33,35 @@ const Dashboard = () => {
     fetchLeads();
   }, []);
 
-  const fetchLeads = async () => {
-    try {
-      setLoading(true);
-      const res = await API.get("/leads");
-      setLeads(res.data);
-      
-      // Calculate stats
-      const total = res.data.length;
-      const newLeads = res.data.filter(l => l.status === "new").length;
-      const contacted = res.data.filter(l => l.status === "contacted").length;
-      const converted = res.data.filter(l => l.status === "converted").length;
-      const conversionRate = total ? ((converted / total) * 100).toFixed(1) : 0;
-      
-      setStats({
-        total,
-        new: newLeads,
-        contacted,
-        converted,
-        conversionRate
-      });
-      
-      // Get recent leads (last 5)
-      const recent = [...res.data]
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
-      setRecentLeads(recent);
-      
-    } catch (error) {
-      console.error("Failed to fetch leads:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+ // In Dashboard.jsx and Analytics.jsx
+// In Dashboard.jsx, add the recentLeads calculation after fetching leads
+const fetchLeads = async () => {
+  try {
+    setLoading(true);
+    const res = await API.get("/leads");
+    setLeads(res.data);
+    
+    // Calculate stats
+    const total = res.data.length;
+    const newLeads = res.data.filter(l => l.status === "new").length;
+    const contacted = res.data.filter(l => l.status === "contacted").length;
+    const converted = res.data.filter(l => l.status === "converted").length;
+    const conversionRate = total ? ((converted / total) * 100).toFixed(1) : 0;
+    
+    setStats({ total, new: newLeads, contacted, converted, conversionRate });
+    
+    // Get recent leads (last 5) - ADD THIS
+    const recent = [...res.data]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5);
+    setRecentLeads(recent);
+    
+  } catch (error) {
+    console.error("Failed to fetch leads:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getStatusColor = (status) => {
     switch(status) {
@@ -83,6 +80,22 @@ const Dashboard = () => {
       default: return null;
     }
   };
+
+  const exportData = async () => {
+  try {
+    const res = await API.get('/export/all', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `leadcrm_export_${Date.now()}.json`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error('Export failed:', error);
+    alert('Export failed');
+  }
+};
 
   // Calculate weekly trend (last 7 days)
   const getWeeklyTrend = () => {
@@ -105,12 +118,19 @@ const Dashboard = () => {
   const weeklyData = getWeeklyTrend();
   const maxCount = Math.max(...weeklyData.map(d => d.count), 1);
 
+
   return (
     <Layout>
       <div className="min-h-screen">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1> <button
+  onClick={exportData}
+  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+>
+  <Download className="w-4 h-4" />
+  Export Data
+</button>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Welcome back! Here's what's happening with your leads today.
           </p>

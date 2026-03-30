@@ -1,6 +1,7 @@
 import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 // Generate JWT Token
 const generateToken = (user) => {
@@ -20,24 +21,15 @@ export const googleAuth = async (req, res) => {
       return res.status(400).json({ message: 'Google credential is required' });
     }
     
-    // Get the client ID from environment
-    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    console.log('Verifying Google token...');
     
-    if (!googleClientId) {
-      console.error('GOOGLE_CLIENT_ID is not set in environment variables');
-      return res.status(500).json({ message: 'Google authentication is not configured' });
-    }
+    // Create OAuth2 client
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     
-    console.log('Verifying Google token with client ID:', googleClientId);
-    
-    // Create OAuth2 client with the correct client ID
-    const client = new OAuth2Client(googleClientId);
-    
-    // Verify Google token with more detailed options
+    // Verify Google token
     const ticket = await client.verifyIdToken({
       idToken: credential,
-      audience: googleClientId, // Explicitly set the audience
-      // Required audience must match your client ID
+      audience: process.env.GOOGLE_CLIENT_ID
     });
     
     const payload = ticket.getPayload();
@@ -50,15 +42,19 @@ export const googleAuth = async (req, res) => {
     
     if (user) {
       console.log('User exists, updating Google info...');
-      // User exists, update Google info if needed
-      if (!user.googleId) {
-        user.googleId = googleId;
-        user.authProvider = 'google';
-        user.isEmailVerified = email_verified;
-        if (picture) user.avatar = picture;
-        if (name) user.fullName = name;
-        await user.save();
-      }
+      
+      // User exists - update Google info without requiring password
+      user.googleId = googleId;
+      user.authProvider = 'google';
+      user.isEmailVerified = email_verified;
+      if (picture) user.avatar = picture;
+      if (name) user.fullName = name;
+      
+      // IMPORTANT: Don't modify password for Google users
+      // Password field remains as is for existing local users
+      
+      await user.save();
+      console.log('User updated successfully');
     } else {
       console.log('Creating new user with Google...');
       // Create new user with Google
@@ -70,7 +66,9 @@ export const googleAuth = async (req, res) => {
         authProvider: 'google',
         isEmailVerified: email_verified,
         avatar: picture,
-        role: 'user'
+        role: 'user',
+        // For Google users, we don't need a password
+        password: undefined
       });
       
       await user.save();
@@ -101,14 +99,7 @@ export const googleAuth = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Google auth error details:', {
-      message: error.message,
-      stack: error.stack
-    });
-    
-    // Send more detailed error response
-    res.status(500).json({ 
-      message: 'Google authentication failed: ' + error.message 
-    });
+    console.error('Google auth error details:', error);
+    res.status(500).json({ message: 'Google authentication failed: ' + error.message });
   }
 };

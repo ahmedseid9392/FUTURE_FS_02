@@ -56,13 +56,19 @@ const messageSchema = new mongoose.Schema({
     enum: ['outgoing', 'incoming'],
     default: 'outgoing'
   },
+  // User-specific field
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
 
-// Create compound index for conversation queries
 messageSchema.index({ conversationId: 1, createdAt: -1 });
 
 const Message = mongoose.model('Message', messageSchema);
