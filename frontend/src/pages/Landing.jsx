@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useDarkMode } from "../context/DarkModeContext";
+import Preview from "../../public/assets/preview.png";
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -297,8 +298,9 @@ const Landing = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-950 via-transparent to-transparent"></div>
               <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 h-96 flex items-center justify-center">
                 <div className="text-center">
-                  <BarChart3 className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">Dashboard Preview</p>
+                <img src={Preview} alt="" className="p-4 w-full h-96" />
+                  {/* <BarChart3 className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">Dashboard Preview</p> */}
                 </div>
               </div>
             </div>

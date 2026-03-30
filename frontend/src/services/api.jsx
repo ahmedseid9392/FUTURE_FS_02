@@ -36,3 +36,15 @@ API.interceptors.response.use(
 );
 
 export default API;
+
+// Add these to your existing API service
+export const messageAPI = {
+  getConversations: () => API.get('/messages/conversations'),
+  getMessages: (conversationId) => API.get(`/messages/${conversationId}`),
+  createConversation: (data) => API.post('/messages', data),
+  sendMessage: (conversationId, text) => API.post(`/messages/${conversationId}`, { text }),
+  markAsRead: (messageId) => API.put(`/messages/${messageId}/read`),
+  toggleStar: (messageId, starred) => API.put(`/messages/${messageId}/star`, { starred }),
+  deleteMessage: (messageId) => API.delete(`/messages/${messageId}`),
+  starConversation: (conversationId, starred) => API.put(`/messages/conversation/${conversationId}/star`, { starred })
+};

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Notification from "./Notification";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useDarkMode } from "../context/DarkModeContext";
@@ -68,10 +69,7 @@ const Header = ({ onMenuClick }) => {
           <div className="flex items-center space-x-2">
             
             {/* Notifications */}
-            <button className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            <Notification />
             
             {/* Dark Mode Toggle */}
             <button

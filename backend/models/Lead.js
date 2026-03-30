@@ -43,10 +43,7 @@ const leadSchema = new mongoose.Schema({
   }
 });
 
-leadSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+
 
 const Lead = mongoose.model('Lead', leadSchema);
 export default Lead;
