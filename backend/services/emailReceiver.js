@@ -97,15 +97,20 @@ const processIncomingEmail = async (email) => {
     const subject = email.subject;
     const text = email.text || email.html || '';
     
+    // Get a default admin user for incoming emails
+    const adminUser = await User.findOne({ role: 'admin' });
+    if (!adminUser) {
+      console.log('⚠️ No admin user found for email processing');
+      return;
+    }
+    
     // Extract conversation ID from headers or subject
     let conversationId = null;
     
-    // Check custom header
     if (email.headers.get('x-conversation-id')) {
       conversationId = email.headers.get('x-conversation-id');
     }
     
-    // If no conversation ID, try to find by email and subject
     if (!conversationId && fromEmail) {
       const existingConversation = await Conversation.findOne({
         'participants.email': fromEmail,
@@ -118,17 +123,12 @@ const processIncomingEmail = async (email) => {
     }
     
     if (conversationId) {
-      // Find existing conversation
       const conversation = await Conversation.findById(conversationId);
-      
       if (conversation) {
-        // Find admin user
-        const adminUser = await User.findOne({ role: 'admin' });
-        
-        // Save incoming message
+        // Save incoming message with userId
         const message = new Message({
           conversationId: conversation._id,
-          senderId: adminUser?._id || null,
+          senderId: adminUser._id, // Use admin user as sender
           senderEmail: fromEmail,
           senderName: from,
           recipientEmail: process.env.EMAIL_USER,
@@ -137,12 +137,12 @@ const processIncomingEmail = async (email) => {
           text: text,
           direction: 'incoming',
           emailSent: true,
-          emailId: email.messageId
+          emailId: email.messageId,
+          userId: adminUser._id // Add this line
         });
         
         await message.save();
         
-        // Update conversation
         conversation.lastMessage = text.substring(0, 100);
         conversation.lastMessageAt = new Date();
         conversation.unreadCount += 1;

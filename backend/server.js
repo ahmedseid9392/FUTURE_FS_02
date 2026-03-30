@@ -13,6 +13,8 @@ import { setupEmailReceiver } from './services/emailReceiver.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import calendarRoutes from './routes/calendarRoutes.js';
+import exportRoutes from './routes/exportRoutes.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,6 +69,8 @@ app.use('/api/messages', messageRoutes); // Make sure this line exists
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/export', exportRoutes);
+
 
 // Add to server.js for debugging
 app.get('/api/debug/google-config', (req, res) => {

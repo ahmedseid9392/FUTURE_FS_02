@@ -12,15 +12,15 @@ import {
 
 const router = express.Router();
 
-// Public route for form submissions
-router.post('/', createLead);
+// ALL lead routes require authentication (no public routes)
+router.use(authenticateToken);
 
-// Protected routes
-router.get('/', authenticateToken, getLeads);
-router.get('/:id', authenticateToken, getLeadById);
-router.put('/:id', authenticateToken, updateLead);
-router.delete('/:id', authenticateToken, deleteLead);
-router.post('/:id/notes', authenticateToken, addNote);
-router.get('/:id/notes', authenticateToken, getNotes);
+router.get('/', getLeads);
+router.get('/:id', getLeadById);
+router.post('/', createLead);
+router.put('/:id', updateLead);
+router.delete('/:id', deleteLead);
+router.post('/:id/notes', addNote);
+router.get('/:id/notes', getNotes);
 
 export default router;

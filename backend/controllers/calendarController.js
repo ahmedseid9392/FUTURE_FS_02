@@ -1,12 +1,12 @@
 import Event from '../models/Event.js';
 import Lead from '../models/Lead.js';
 
-// Get events for a date range
+// Get events for current user
 export const getEvents = async (req, res) => {
   try {
     const { year, month, startDate, endDate } = req.query;
     
-    let query = { userId: req.user.id };
+    let query = { userId: req.user.id }; // Only get events for current user
     
     if (year && month) {
       const start = new Date(year, month - 1, 1);
@@ -24,13 +24,13 @@ export const getEvents = async (req, res) => {
   }
 };
 
-// Create event
+// Create event for current user
 export const createEvent = async (req, res) => {
   try {
     const { title, description, type, startDate, endDate, location, attendees, leadId, reminder, recurrence, color } = req.body;
     
     const event = new Event({
-      userId: req.user.id,
+      userId: req.user.id, // Associate with current user
       title,
       description,
       type,
@@ -46,13 +46,6 @@ export const createEvent = async (req, res) => {
     
     await event.save();
     
-    // If lead is associated, update lead with event
-    if (leadId) {
-      await Lead.findByIdAndUpdate(leadId, {
-        $push: { events: event._id }
-      });
-    }
-    
     res.status(201).json(event);
   } catch (error) {
     console.error('Create event error:', error);
@@ -60,14 +53,14 @@ export const createEvent = async (req, res) => {
   }
 };
 
-// Update event
+// Update event (check ownership)
 export const updateEvent = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = req.body;
     
     const event = await Event.findOneAndUpdate(
-      { _id: id, userId: req.user.id },
+      { _id: id, userId: req.user.id }, // Check ownership
       { ...updates, updatedAt: new Date() },
       { new: true }
     );
@@ -83,22 +76,18 @@ export const updateEvent = async (req, res) => {
   }
 };
 
-// Delete event
+// Delete event (check ownership)
 export const deleteEvent = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const event = await Event.findOneAndDelete({ _id: id, userId: req.user.id });
+    const event = await Event.findOneAndDelete({ 
+      _id: id, 
+      userId: req.user.id // Check ownership
+    });
     
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
-    }
-    
-    // Remove event from lead if associated
-    if (event.leadId) {
-      await Lead.findByIdAndUpdate(event.leadId, {
-        $pull: { events: event._id }
-      });
     }
     
     res.json({ message: 'Event deleted successfully' });

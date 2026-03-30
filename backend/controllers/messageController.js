@@ -9,11 +9,9 @@ export const getConversations = async (req, res) => {
   try {
     console.log('Fetching conversations for user:', req.user.id);
     
-    const conversations = await Conversation.find({
-      'participants.userId': { $in: [req.user.id, null] }
-    })
-    .sort({ lastMessageAt: -1 })
-    .limit(50);
+    const conversations = await Conversation.find({ 
+      userId: req.user.id // Only get conversations for this user
+    }).sort({ lastMessageAt: -1 }).limit(50);
     
     // Enrich with contact details
     const enrichedConversations = await Promise.all(conversations.map(async (conv) => {
@@ -61,41 +59,31 @@ export const getMessages = async (req, res) => {
     const { id } = req.params;
     console.log('Fetching messages for conversation:', id);
     
-    const messages = await Message.find({ conversationId: id })
-      .sort({ createdAt: 1 });
+    // First verify the conversation belongs to this user
+    const conversation = await Conversation.findOne({ 
+      _id: id,
+      userId: req.user.id
+    });
+    
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
+    
+    const messages = await Message.find({ 
+      conversationId: id,
+      userId: req.user.id // Only get messages for this user
+    }).sort({ createdAt: 1 });
     
     // Mark messages as read
     await Message.updateMany(
-      { conversationId: id, isRead: false, direction: 'incoming' },
+      { conversationId: id, isRead: false, direction: 'incoming', userId: req.user.id },
       { $set: { isRead: true } }
     );
     
     // Reset unread count
     await Conversation.findByIdAndUpdate(id, { unreadCount: 0 });
     
-    // Enrich messages with sender info
-    const enrichedMessages = await Promise.all(messages.map(async (msg) => {
-      let senderName = msg.senderName;
-      if (msg.senderId) {
-        const user = await User.findById(msg.senderId);
-        if (user) senderName = user.fullName || user.username;
-      }
-      
-      return {
-        id: msg._id,
-        senderId: msg.senderId,
-        senderName: senderName,
-        senderEmail: msg.senderEmail,
-        text: msg.text,
-        subject: msg.subject,
-        isRead: msg.isRead,
-        isStarred: msg.isStarred,
-        direction: msg.direction,
-        createdAt: msg.createdAt
-      };
-    }));
-    
-    res.json(enrichedMessages);
+    res.json(messages);
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -109,7 +97,7 @@ export const createConversation = async (req, res) => {
     const { recipient, subject, message } = req.body;
     
     if (!recipient || !subject || !message) {
-      return res.status(400).json({ message: 'Missing required fields: recipient, subject, or message' });
+      return res.status(400).json({ message: 'Missing required fields' });
     }
     
     // Find or create user/lead
@@ -126,7 +114,7 @@ export const createConversation = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Create conversation
+    // Create conversation with user association
     const conversation = new Conversation({
       participants: [
         {
@@ -146,13 +134,14 @@ export const createConversation = async (req, res) => {
       subject: subject,
       lastMessage: message.substring(0, 100),
       lastMessageAt: new Date(),
-      unreadCount: 0
+      unreadCount: 0,
+      userId: currentUser._id // Associate with current user
     });
     
     await conversation.save();
     console.log('Conversation created:', conversation._id);
     
-    // Save the message
+    // Save the message with user association
     const newMessage = new Message({
       conversationId: conversation._id,
       senderId: currentUser._id,
@@ -163,13 +152,13 @@ export const createConversation = async (req, res) => {
       subject: subject,
       text: message,
       direction: 'outgoing',
-      emailSent: false
+      emailSent: false,
+      userId: currentUser._id // Associate with current user
     });
     
     await newMessage.save();
-    console.log('Message saved:', newMessage._id);
     
-    // Send email via Nodemailer (if configured)
+    // Send email if configured
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
         await sendEmail({
@@ -184,13 +173,9 @@ export const createConversation = async (req, res) => {
         
         newMessage.emailSent = true;
         await newMessage.save();
-        console.log('Email sent successfully');
       } catch (emailError) {
         console.error('Email sending failed:', emailError);
-        // Don't fail the request if email fails
       }
-    } else {
-      console.log('Email not configured. Message saved locally only.');
     }
     
     res.status(201).json({
@@ -221,11 +206,11 @@ export const sendMessage = async (req, res) => {
     
     console.log('Sending message to conversation:', id);
     
-    if (!text) {
-      return res.status(400).json({ message: 'Message text is required' });
-    }
+    const conversation = await Conversation.findOne({ 
+      _id: id,
+      userId: req.user.id // Verify ownership
+    });
     
-    const conversation = await Conversation.findById(id);
     if (!conversation) {
       return res.status(404).json({ message: 'Conversation not found' });
     }
@@ -241,7 +226,7 @@ export const sendMessage = async (req, res) => {
       return res.status(400).json({ message: 'No recipient found' });
     }
     
-    // Save message
+    // Save message with user association
     const message = new Message({
       conversationId: conversation._id,
       senderId: currentUser._id,
@@ -252,7 +237,8 @@ export const sendMessage = async (req, res) => {
       subject: conversation.subject,
       text: text,
       direction: 'outgoing',
-      emailSent: false
+      emailSent: false,
+      userId: currentUser._id // Associate with current user
     });
     
     await message.save();
@@ -262,7 +248,7 @@ export const sendMessage = async (req, res) => {
     conversation.lastMessageAt = new Date();
     await conversation.save();
     
-    // Send email
+    // Send email if configured
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
         await sendEmail({
@@ -277,7 +263,6 @@ export const sendMessage = async (req, res) => {
         
         message.emailSent = true;
         await message.save();
-        console.log('Email sent successfully');
       } catch (emailError) {
         console.error('Email sending failed:', emailError);
       }
@@ -301,8 +286,8 @@ export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const message = await Message.findByIdAndUpdate(
-      id,
+    const message = await Message.findOneAndUpdate(
+      { _id: id, userId: req.user.id }, // Check ownership
       { isRead: true },
       { new: true }
     );
@@ -324,8 +309,8 @@ export const toggleStar = async (req, res) => {
     const { id } = req.params;
     const { starred } = req.body;
     
-    const message = await Message.findByIdAndUpdate(
-      id,
+    const message = await Message.findOneAndUpdate(
+      { _id: id, userId: req.user.id }, // Check ownership
       { isStarred: starred },
       { new: true }
     );
@@ -346,7 +331,10 @@ export const deleteMessage = async (req, res) => {
   try {
     const { id } = req.params;
     
-    const message = await Message.findByIdAndDelete(id);
+    const message = await Message.findOneAndDelete({ 
+      _id: id, 
+      userId: req.user.id // Check ownership
+    });
     
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
@@ -365,8 +353,8 @@ export const starConversation = async (req, res) => {
     const { id } = req.params;
     const { starred } = req.body;
     
-    const conversation = await Conversation.findByIdAndUpdate(
-      id,
+    const conversation = await Conversation.findOneAndUpdate(
+      { _id: id, userId: req.user.id }, // Check ownership
       { starred: starred },
       { new: true }
     );

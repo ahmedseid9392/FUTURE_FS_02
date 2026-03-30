@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
 
 const eventSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
   title: {
     type: String,
     required: true
@@ -53,6 +48,13 @@ const eventSchema = new mongoose.Schema({
     enum: ['blue', 'green', 'yellow', 'red', 'purple', 'pink', 'indigo'],
     default: 'blue'
   },
+  // User-specific field
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -62,6 +64,7 @@ const eventSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
 
 
 const Event = mongoose.model('Event', eventSchema);

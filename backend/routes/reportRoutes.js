@@ -1,13 +1,14 @@
 import express from 'express';
 import { authenticateToken } from '../middleware/authMiddleware.js';
-import { getReports, exportReport } from '../controllers/reportController.js';
+import { getReports, exportReportCSV, exportReportJSON } from '../controllers/reportController.js';
 
 const router = express.Router();
 
-// Get reports
-router.get('/', authenticateToken, getReports);
+// All report routes require authentication
+router.use(authenticateToken);
 
-// Export report
-router.get('/export', authenticateToken, exportReport);
+router.get('/', getReports);
+router.get('/export/csv', exportReportCSV);
+router.get('/export/json', exportReportJSON);
 
 export default router;
