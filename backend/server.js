@@ -124,4 +124,18 @@ app.listen(PORT, () => {
   console.log(`📧 Email service: ${process.env.EMAIL_USER ? '✅' : '❌'}`);
 });
 
+// Add this to server.js for debugging
+app.get('/api/debug/check-lead/:email', async (req, res) => {
+  try {
+    const lead = await Lead.findOne({ email: req.params.email });
+    res.json({ 
+      email: req.params.email, 
+      isLead: !!lead,
+      lead: lead ? { name: lead.name, email: lead.email } : null
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default app;

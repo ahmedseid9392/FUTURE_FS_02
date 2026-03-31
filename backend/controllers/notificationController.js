@@ -3,10 +3,11 @@ import Notification from '../models/Notification.js';
 // Get notifications for current user
 export const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ userId: req.user.id }) // Only get notifications for current user
-      .sort({ createdAt: -1 })
-      .limit(100);
+    const notifications = await Notification.find({ 
+      userId: req.user.id
+    }).sort({ createdAt: -1 }).limit(100);
     
+    console.log(`Found ${notifications.length} notifications for user ${req.user.id}`);
     res.json(notifications);
   } catch (error) {
     console.error('Get notifications error:', error);
@@ -14,13 +15,13 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-// Mark notification as read (check ownership)
+// Mark notification as read
 export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
     
     const notification = await Notification.findOneAndUpdate(
-      { _id: id, userId: req.user.id }, // Check ownership
+      { _id: id, userId: req.user.id },
       { read: true },
       { new: true }
     );
@@ -36,7 +37,7 @@ export const markAsRead = async (req, res) => {
   }
 };
 
-// Mark all notifications as read for current user
+// Mark all notifications as read
 export const markAllAsRead = async (req, res) => {
   try {
     await Notification.updateMany(
@@ -51,14 +52,14 @@ export const markAllAsRead = async (req, res) => {
   }
 };
 
-// Delete notification (check ownership)
+// Delete notification
 export const deleteNotification = async (req, res) => {
   try {
     const { id } = req.params;
     
     const notification = await Notification.findOneAndDelete({
       _id: id,
-      userId: req.user.id // Check ownership
+      userId: req.user.id
     });
     
     if (!notification) {
@@ -72,9 +73,14 @@ export const deleteNotification = async (req, res) => {
   }
 };
 
-// Create notification for a specific user (utility function)
+// Create notification - FIXED
 export const createNotification = async (userId, type, title, message, relatedId = null, metadata = {}) => {
   try {
+    if (!userId) {
+      console.error('Cannot create notification: userId is required');
+      return null;
+    }
+    
     const notification = new Notification({
       userId,
       type,
@@ -86,6 +92,7 @@ export const createNotification = async (userId, type, title, message, relatedId
     });
     
     await notification.save();
+    console.log(`✅ Notification created: ${title} for user ${userId}`);
     return notification;
   } catch (error) {
     console.error('Create notification error:', error);

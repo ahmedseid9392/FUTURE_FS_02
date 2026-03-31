@@ -1,7 +1,5 @@
 import nodemailer from 'nodemailer';
-import Message from '../models/Message.js';
-import Conversation from '../models/Conversation.js';
-import User from '../models/User.js';
+import { createNotification } from '../controllers/notificationController.js';
 
 // Configure email transporter
 const createTransporter = () => {
@@ -9,17 +7,16 @@ const createTransporter = () => {
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS // App password
+      pass: process.env.EMAIL_PASS
     }
   });
 };
 
-// Send email
+// Send email and create notification
 export const sendEmail = async ({ to, subject, text, from, conversationId, senderId, recipientName }) => {
   try {
     const transporter = createTransporter();
     
-    // Email template
     const emailHtml = `
       <!DOCTYPE html>
       <html>
@@ -90,15 +87,6 @@ export const sendEmail = async ({ to, subject, text, from, conversationId, sende
             color: #666;
             border-top: 1px solid #e0e0e0;
           }
-          .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            margin-top: 15px;
-          }
           .reply-hint {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
@@ -155,7 +143,7 @@ export const sendEmail = async ({ to, subject, text, from, conversationId, sende
       from: `"LeadCRM" <${process.env.EMAIL_USER}>`,
       to,
       subject,
-      text: text, // Plain text version
+      text: text,
       html: emailHtml,
       headers: {
         'X-Conversation-ID': conversationId,
@@ -165,6 +153,18 @@ export const sendEmail = async ({ to, subject, text, from, conversationId, sende
     
     const info = await transporter.sendMail(mailOptions);
     console.log('Email sent:', info.messageId);
+    
+    // Create notification for the sender that email was sent
+    if (senderId) {
+      await createNotification(
+        senderId,
+        'email',
+        'Email Sent',
+        `Your email to ${to} has been sent successfully. Subject: "${subject}"`,
+        conversationId,
+        { recipient: to, subject: subject }
+      );
+    }
     
     return {
       success: true,
@@ -176,23 +176,13 @@ export const sendEmail = async ({ to, subject, text, from, conversationId, sende
   }
 };
 
-// Generate conversation ID
-export const generateConversationId = () => {
-  return `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
-
-
-// Send password reset email
+// Send password reset email with notification
 export const sendPasswordResetEmail = async (to, resetToken, userName) => {
   try {
     const transporter = createTransporter();
     
-    // Get frontend URL from environment, fallback to localhost
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
-    
-    console.log('Sending reset link to:', to);
-    console.log('Reset link:', resetLink);
     
     const emailHtml = `
       <!DOCTYPE html>
@@ -318,6 +308,7 @@ export const sendPasswordResetEmail = async (to, resetToken, userName) => {
     
     const info = await transporter.sendMail(mailOptions);
     console.log('Password reset email sent:', info.messageId);
+    
     return { success: true, messageId: info.messageId };
   } catch (error) {
     console.error('Password reset email error:', error);

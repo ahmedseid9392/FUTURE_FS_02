@@ -6,6 +6,7 @@ import {
   Download, 
   Calendar, 
   TrendingUp, 
+  TrendingDown,
   Users, 
   CheckCircle, 
   Clock,
@@ -32,6 +33,7 @@ const Reports = () => {
   const [reportData, setReportData] = useState(null);
   const [exportFormat, setExportFormat] = useState("csv");
   const [error, setError] = useState(null);
+  const [chartType, setChartType] = useState("bar"); // Add chart type state
 
   // Fetch report data
   useEffect(() => {
@@ -57,7 +59,7 @@ const Reports = () => {
       console.log("Fetching reports with params:", params);
       
       const res = await API.get("/reports", { params });
-      
+      console.log("Reports API Response:", res.data);
       
       setReportData(res.data);
     } catch (error) {
@@ -175,7 +177,6 @@ const Reports = () => {
     );
   }
 
-  // Calculate max count for chart scaling
   const maxCount = reportData.leadTrend?.length > 0 
     ? Math.max(...reportData.leadTrend.map(d => d.count), 1) 
     : 1;
@@ -288,7 +289,7 @@ const Reports = () => {
           </nav>
         </div>
 
-        {/* Overview Tab */}
+        {/* Overview Tab - Lead Trend Section */}
         {activeTab === "overview" && (
           <div className="space-y-6">
             {/* KPI Cards */}
@@ -334,43 +335,194 @@ const Reports = () => {
               </div>
             </div>
 
-            {/* Lead Trend Chart - FIXED */}
+            {/* Lead Trend Section */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Lead Trend</h2>
-                <BarChart3 className="w-5 h-5 text-gray-400" />
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Lead Trend</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Track your lead acquisition over time
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setChartType('bar')}
+                    className={`px-3 py-1 text-sm rounded-lg transition ${
+                      chartType === 'bar' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >
+                    Bar Chart
+                  </button>
+                  <button 
+                    onClick={() => setChartType('line')}
+                    className={`px-3 py-1 text-sm rounded-lg transition ${
+                      chartType === 'line' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >
+                    Line Chart
+                  </button>
+                </div>
               </div>
+              
               {reportData.leadTrend && reportData.leadTrend.length > 0 ? (
-                <div className="h-80">
-                  <div className="flex h-full items-end space-x-2 overflow-x-auto pb-4">
-                    {reportData.leadTrend.map((item, index) => {
-                      const heightPercent = (item.count / maxCount) * 100;
-                      const barHeight = Math.max(heightPercent, 5);
-                      return (
-                        <div key={index} className="flex-1 flex flex-col items-center min-w-[50px]">
-                          <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-t-lg relative group">
-                            <div 
-                              className="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg transition-all duration-500"
-                              style={{ height: `${barHeight}%`, minHeight: '4px' }}
-                            >
-                              <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10">
-                                {item.count} leads
-                              </div>
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-                            {item.label?.substring(0, 10) || 'N/A'}
-                          </p>
-                          <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mt-1">
-                            {item.count}
-                          </p>
-                        </div>
-                      );
-                    })}
+                <div>
+                  {/* Summary Stats */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {reportData.leadTrend.reduce((sum, day) => sum + day.count, 0)}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Total Leads</p>
+                    </div>
+                    <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {Math.max(...reportData.leadTrend.map(d => d.count), 0)}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Highest Day</p>
+                    </div>
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                        {(reportData.leadTrend.reduce((sum, day) => sum + day.count, 0) / reportData.leadTrend.length).toFixed(1)}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Daily Average</p>
+                    </div>
+                    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 text-center">
+                      <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        {reportData.leadTrend[reportData.leadTrend.length - 1]?.count || 0}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Latest Day</p>
+                    </div>
                   </div>
+                  
+                  {/* Chart */}
+                  <div className="h-80">
+                    {chartType === 'bar' ? (
+                      <div className="flex h-full items-end space-x-2 overflow-x-auto pb-4">
+                        {reportData.leadTrend.map((item, index) => {
+                          const maxCount = Math.max(...reportData.leadTrend.map(d => d.count), 1);
+                          const heightPercent = (item.count / maxCount) * 100;
+                          const barHeight = Math.max(heightPercent, 5);
+                          return (
+                            <div key={index} className="flex-1 flex flex-col items-center min-w-[60px] group">
+                              <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-t-lg relative">
+                                <div 
+                                  className="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg transition-all duration-500 cursor-pointer hover:from-blue-600 hover:to-blue-500"
+                                  style={{ height: `${barHeight}%`, minHeight: '4px' }}
+                                >
+                                  <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 dark:bg-gray-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-10 pointer-events-none">
+                                    {item.count} leads
+                                  </div>
+                                </div>
+                              </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center font-medium">
+                                {item.label}
+                              </p>
+                              <p className="text-sm font-bold text-gray-700 dark:text-gray-300 mt-1">
+                                {item.count}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="relative h-full">
+                        <svg className="w-full h-full" viewBox="0 0 800 300" preserveAspectRatio="none">
+                          <line x1="0" y1="240" x2="800" y2="240" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
+                          <line x1="0" y1="180" x2="800" y2="180" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
+                          <line x1="0" y1="120" x2="800" y2="120" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
+                          <line x1="0" y1="60" x2="800" y2="60" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
+                          
+                          <polyline
+                            points={reportData.leadTrend.map((item, i) => {
+                              const x = (i / (reportData.leadTrend.length - 1)) * 800;
+                              const maxCount = Math.max(...reportData.leadTrend.map(d => d.count), 1);
+                              const y = 240 - (item.count / maxCount) * 200;
+                              return `${x},${y}`;
+                            }).join(' ')}
+                            fill="none"
+                            stroke="#3b82f6"
+                            strokeWidth="3"
+                            className="dark:stroke-blue-400"
+                          />
+                          
+                          <polygon
+                            points={`0,240 ${reportData.leadTrend.map((item, i) => {
+                              const x = (i / (reportData.leadTrend.length - 1)) * 800;
+                              const maxCount = Math.max(...reportData.leadTrend.map(d => d.count), 1);
+                              const y = 240 - (item.count / maxCount) * 200;
+                              return `${x},${y}`;
+                            }).join(' ')} 800,240 0,240`}
+                            fill="rgba(59, 130, 246, 0.1)"
+                          />
+                          
+                          {reportData.leadTrend.map((item, i) => {
+                            const x = (i / (reportData.leadTrend.length - 1)) * 800;
+                            const maxCount = Math.max(...reportData.leadTrend.map(d => d.count), 1);
+                            const y = 240 - (item.count / maxCount) * 200;
+                            return (
+                              <g key={i}>
+                                <circle
+                                  cx={x}
+                                  cy={y}
+                                  r="5"
+                                  fill="#3b82f6"
+                                  stroke="white"
+                                  strokeWidth="2"
+                                  className="cursor-pointer hover:r-7 transition-all"
+                                />
+                                <title>{`${item.label}: ${item.count} leads`}</title>
+                              </g>
+                            );
+                          })}
+                        </svg>
+                        
+                        <div className="flex justify-between mt-2 px-2">
+                          {reportData.leadTrend.map((item, i) => (
+                            <div key={i} className="text-center text-xs text-gray-500 dark:text-gray-400" style={{ width: `${100 / reportData.leadTrend.length}%` }}>
+                              {item.label}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Trend Indicator */}
+                  {reportData.leadTrend.length >= 2 && (
+                    <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">Trend:</span>
+                          {(() => {
+                            const firstHalf = reportData.leadTrend.slice(0, Math.ceil(reportData.leadTrend.length / 2)).reduce((sum, d) => sum + d.count, 0);
+                            const secondHalf = reportData.leadTrend.slice(Math.ceil(reportData.leadTrend.length / 2)).reduce((sum, d) => sum + d.count, 0);
+                            const percentChange = firstHalf ? ((secondHalf - firstHalf) / firstHalf * 100).toFixed(1) : 0;
+                            const isIncreasing = percentChange > 0;
+                            
+                            return (
+                              <div className={`flex items-center gap-1 ${isIncreasing ? 'text-green-600' : 'text-red-600'}`}>
+                                {isIncreasing ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                                <span className="font-semibold">{Math.abs(percentChange)}%</span>
+                                <span className="text-gray-500 text-sm ml-1">
+                                  {isIncreasing ? 'increase' : 'decrease'} in second half
+                                </span>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          Based on {reportData.leadTrend.length} days
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="text-center py-12">
+                <div className="text-center py-16">
                   <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No Lead Trend Data</h3>
                   <p className="text-gray-500 dark:text-gray-400">No leads found for the selected period</p>
@@ -412,113 +564,6 @@ const Reports = () => {
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Leads Analytics Tab */}
-        {activeTab === "leads" && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Lead Acquisition by Channel</h2>
-              {reportData.sourcePerformance && reportData.sourcePerformance.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="border-b border-gray-200 dark:border-gray-700">
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Source</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Leads</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Conversion Rate</th>
-                        <th className="text-right py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Revenue</th>
-                       </tr>
-                    </thead>
-                    <tbody>
-                      {reportData.sourcePerformance.map((source, index) => (
-                        <tr key={index} className="border-b border-gray-100 dark:border-gray-800">
-                          <td className="py-3 px-4 text-gray-900 dark:text-white">{source.name}</td>
-                          <td className="py-3 px-4 text-right text-gray-900 dark:text-white">{source.count}</td>
-                          <td className="py-3 px-4 text-right">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              source.conversionRate >= 30 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
-                              source.conversionRate >= 15 ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                              'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                            }`}>
-                              {source.conversionRate}%
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right text-green-600 dark:text-green-400">${source.revenue}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No lead source data available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Conversion Funnel Tab */}
-        {activeTab === "conversion" && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">Conversion Funnel</h2>
-              {reportData.funnelData && reportData.funnelData.length > 0 ? (
-                <div className="space-y-4">
-                  {reportData.funnelData.map((stage, index) => (
-                    <div key={index}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{stage.stage}</span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">{stage.count} leads ({stage.percentage}%)</span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8">
-                        <div 
-                          className={`h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-medium transition-all ${
-                            index === 0 ? 'bg-blue-500' :
-                            index === 1 ? 'bg-blue-400' :
-                            index === 2 ? 'bg-blue-300' : 'bg-blue-200'
-                          }`}
-                          style={{ width: `${stage.percentage}%` }}
-                        >
-                          {stage.percentage > 15 && `${stage.percentage}%`}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <Target className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500">No conversion data available</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Performance Tab */}
-        {activeTab === "performance" && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Your Performance</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.leadVelocity?.toFixed(1) || 0}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Lead Velocity (per day)</p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.followUpRate || 0}%</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Follow-up Rate</p>
-                </div>
-                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{reportData.responseRate || 0}%</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Response Rate</p>
-                </div>
-              </div>
-            </div>
           </div>
         )}
       </div>

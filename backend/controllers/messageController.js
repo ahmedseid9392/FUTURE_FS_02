@@ -10,7 +10,7 @@ export const getConversations = async (req, res) => {
     console.log('Fetching conversations for user:', req.user.id);
     
     const conversations = await Conversation.find({ 
-      userId: req.user.id // Only get conversations for this user
+      userId: req.user.id 
     }).sort({ lastMessageAt: -1 }).limit(50);
     
     // Enrich with contact details
@@ -59,7 +59,6 @@ export const getMessages = async (req, res) => {
     const { id } = req.params;
     console.log('Fetching messages for conversation:', id);
     
-    // First verify the conversation belongs to this user
     const conversation = await Conversation.findOne({ 
       _id: id,
       userId: req.user.id
@@ -70,20 +69,32 @@ export const getMessages = async (req, res) => {
     }
     
     const messages = await Message.find({ 
-      conversationId: id,
-      userId: req.user.id // Only get messages for this user
+      conversationId: id
     }).sort({ createdAt: 1 });
     
     // Mark messages as read
     await Message.updateMany(
-      { conversationId: id, isRead: false, direction: 'incoming', userId: req.user.id },
+      { conversationId: id, isRead: false, direction: 'incoming' },
       { $set: { isRead: true } }
     );
     
-    // Reset unread count
     await Conversation.findByIdAndUpdate(id, { unreadCount: 0 });
     
-    res.json(messages);
+    // Enrich messages - handle null senderId
+    const enrichedMessages = messages.map(msg => ({
+      id: msg._id,
+      senderId: msg.senderId,
+      senderName: msg.senderName || (msg.direction === 'outgoing' ? 'You' : msg.senderEmail?.split('@')[0]),
+      senderEmail: msg.senderEmail,
+      text: msg.text,
+      subject: msg.subject,
+      isRead: msg.isRead,
+      isStarred: msg.isStarred,
+      direction: msg.direction,
+      createdAt: msg.createdAt
+    }));
+    
+    res.json(enrichedMessages);
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -100,7 +111,6 @@ export const createConversation = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
     
-    // Find or create user/lead
     let lead = await Lead.findOne({ email: recipient });
     let recipientName = recipient.split('@')[0];
     
@@ -108,13 +118,11 @@ export const createConversation = async (req, res) => {
       recipientName = lead.name;
     }
     
-    // Get current user
     const currentUser = await User.findById(req.user.id);
     if (!currentUser) {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Create conversation with user association
     const conversation = new Conversation({
       participants: [
         {
@@ -135,13 +143,12 @@ export const createConversation = async (req, res) => {
       lastMessage: message.substring(0, 100),
       lastMessageAt: new Date(),
       unreadCount: 0,
-      userId: currentUser._id // Associate with current user
+      userId: currentUser._id
     });
     
     await conversation.save();
     console.log('Conversation created:', conversation._id);
     
-    // Save the message with user association
     const newMessage = new Message({
       conversationId: conversation._id,
       senderId: currentUser._id,
@@ -153,12 +160,11 @@ export const createConversation = async (req, res) => {
       text: message,
       direction: 'outgoing',
       emailSent: false,
-      userId: currentUser._id // Associate with current user
+      userId: currentUser._id
     });
     
     await newMessage.save();
     
-    // Send email if configured
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
         await sendEmail({
@@ -208,7 +214,7 @@ export const sendMessage = async (req, res) => {
     
     const conversation = await Conversation.findOne({ 
       _id: id,
-      userId: req.user.id // Verify ownership
+      userId: req.user.id
     });
     
     if (!conversation) {
@@ -220,13 +226,11 @@ export const sendMessage = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Find recipient
     const recipient = conversation.participants.find(p => p.role === 'lead');
     if (!recipient) {
       return res.status(400).json({ message: 'No recipient found' });
     }
     
-    // Save message with user association
     const message = new Message({
       conversationId: conversation._id,
       senderId: currentUser._id,
@@ -238,17 +242,15 @@ export const sendMessage = async (req, res) => {
       text: text,
       direction: 'outgoing',
       emailSent: false,
-      userId: currentUser._id // Associate with current user
+      userId: currentUser._id
     });
     
     await message.save();
     
-    // Update conversation
     conversation.lastMessage = text.substring(0, 100);
     conversation.lastMessageAt = new Date();
     await conversation.save();
     
-    // Send email if configured
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
         await sendEmail({
@@ -281,13 +283,14 @@ export const sendMessage = async (req, res) => {
   }
 };
 
-// Mark message as read
+// Mark message as read - FIXED
 export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('Marking message as read:', id);
     
     const message = await Message.findOneAndUpdate(
-      { _id: id, userId: req.user.id }, // Check ownership
+      { _id: id },
       { isRead: true },
       { new: true }
     );
@@ -296,7 +299,15 @@ export const markAsRead = async (req, res) => {
       return res.status(404).json({ message: 'Message not found' });
     }
     
-    res.json({ message: 'Message marked as read' });
+    // Also update the conversation unread count
+    const conversation = await Conversation.findById(message.conversationId);
+    if (conversation && conversation.unreadCount > 0) {
+      conversation.unreadCount -= 1;
+      await conversation.save();
+    }
+    
+    console.log('Message marked as read successfully');
+    res.json({ message: 'Message marked as read', data: message });
   } catch (error) {
     console.error('Mark as read error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -310,7 +321,7 @@ export const toggleStar = async (req, res) => {
     const { starred } = req.body;
     
     const message = await Message.findOneAndUpdate(
-      { _id: id, userId: req.user.id }, // Check ownership
+      { _id: id },
       { isStarred: starred },
       { new: true }
     );
@@ -332,8 +343,7 @@ export const deleteMessage = async (req, res) => {
     const { id } = req.params;
     
     const message = await Message.findOneAndDelete({ 
-      _id: id, 
-      userId: req.user.id // Check ownership
+      _id: id
     });
     
     if (!message) {
@@ -354,7 +364,7 @@ export const starConversation = async (req, res) => {
     const { starred } = req.body;
     
     const conversation = await Conversation.findOneAndUpdate(
-      { _id: id, userId: req.user.id }, // Check ownership
+      { _id: id },
       { starred: starred },
       { new: true }
     );

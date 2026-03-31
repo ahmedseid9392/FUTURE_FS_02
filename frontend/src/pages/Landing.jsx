@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useDarkMode } from "../context/DarkModeContext";
 import API from "../services/api";
 import GoogleButton from '../components/GoogleButton';
+import dashboardPreviewLight from '../assets/dashboard-preview-light.png';
+import dashboardPreviewDark from '../assets/dashboard-preview-dark.png';
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -31,7 +33,7 @@ import {
 
 const Landing = () => {
   const navigate = useNavigate();
-  const { login, googleLogin,register, user } = useAuth();
+  const { login, googleLogin, register, user } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -128,23 +130,23 @@ const Landing = () => {
   };
 
   const handleGoogleSuccess = async (userData) => {
-      try {
-        await googleLogin(userData);
-  setShowAuthModal(false);
-    setError("");
-  setTimeout(() => {
-      navigate("/dashboard");
-    }, 100);
-  } catch (error) {
-    console.error("Google login redirect error:", error);
-    setError("Login successful but redirect failed. Please try again.");
-  }
-};
+    try {
+      await googleLogin(userData);
+      setShowAuthModal(false);
+      setError("");
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 100);
+    } catch (error) {
+      console.error("Google login redirect error:", error);
+      setError("Login successful but redirect failed. Please try again.");
+    }
+  };
 
-const handleGoogleError = (errorMessage) => {
-  setError(errorMessage);
-  setTimeout(() => setError(""), 3000);
-};
+  const handleGoogleError = (errorMessage) => {
+    setError(errorMessage);
+    setTimeout(() => setError(""), 3000);
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -362,13 +364,21 @@ const handleGoogleError = (errorMessage) => {
               </a>
             </div>
             
-            {/* Dashboard Preview */}
+            {/* Dashboard Preview with Image */}
             <div className="mt-16 relative">
               <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-950 via-transparent to-transparent"></div>
-              <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 h-96 flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart3 className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">Dashboard Preview</p>
+              <div className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                <img 
+                  src={isDarkMode ? dashboardPreviewDark : dashboardPreviewLight}
+                  alt="LeadCRM Dashboard Preview"
+                  className="w-full h-auto object-cover"
+                />
+                {/* Optional: Add a play button overlay for video demo */}
+                <div className="absolute bottom-4 right-4">
+                  <div className="bg-black/50 backdrop-blur-sm rounded-full p-2 text-white text-xs flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    <span>Dashboard Preview</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -646,22 +656,23 @@ const handleGoogleError = (errorMessage) => {
                       >
                         {loading ? "Signing in..." : "Sign In"}
                       </button>
+                      
                       <div className="relative my-4">
-  <div className="absolute inset-0 flex items-center">
-    <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-  </div>
-  <div className="relative flex justify-center text-sm">
-    <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-      Or continue with
-    </span>
-  </div>
-</div>
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                          <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                            Or continue with
+                          </span>
+                        </div>
+                      </div>
 
-<GoogleButton 
-  onSuccess={handleGoogleSuccess}
-  onError={handleGoogleError}
-  buttonText="Sign in with Google"
-/>
+                      <GoogleButton 
+                        onSuccess={handleGoogleSuccess}
+                        onError={handleGoogleError}
+                        buttonText="Sign in with Google"
+                      />
 
                       <div className="mt-4 text-center">
                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -683,6 +694,7 @@ const handleGoogleError = (errorMessage) => {
                   ) : (
                     // Register Form
                     <form onSubmit={handleRegister}>
+                      {/* Register form content - same as before */}
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Username

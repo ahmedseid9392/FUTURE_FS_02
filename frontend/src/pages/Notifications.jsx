@@ -50,26 +50,40 @@ const Notifications = () => {
   }, []);
 
   // Mark notification as read
-  const markAsRead = async (notificationId) => {
-    try {
-      await API.put(`/notifications/${notificationId}/read`);
-      setNotifications(prev => 
-        prev.map(n => n._id === notificationId ? { ...n, read: true } : n)
-      );
-    } catch (error) {
-      console.error("Failed to mark as read:", error);
-    }
-  };
+  // Add this function to refresh notifications
+const refreshNotifications = async () => {
+  try {
+    setLoading(true);
+    const res = await API.get("/notifications");
+    setNotifications(res.data);
+  } catch (error) {
+    console.error("Failed to fetch notifications:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  // Mark all as read
-  const markAllAsRead = async () => {
-    try {
-      await API.put("/notifications/read-all");
-      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    } catch (error) {
-      console.error("Failed to mark all as read:", error);
-    }
-  };
+// Update markAsRead to refresh
+const markAsRead = async (notificationId) => {
+  try {
+    await API.put(`/notifications/${notificationId}/read`);
+    refreshNotifications(); // Refresh after marking as read
+  } catch (error) {
+    console.error("Failed to mark as read:", error);
+  }
+};
+
+// Update markAllAsRead to refresh
+const markAllAsRead = async () => {
+  try {
+    await API.put("/notifications/read-all");
+    refreshNotifications(); // Refresh after marking all as read
+  } catch (error) {
+    console.error("Failed to mark all as read:", error);
+  }
+};
+
+
 
   // Delete notification
   const deleteNotification = async (notificationId) => {
@@ -116,38 +130,38 @@ const Notifications = () => {
 
   // Get notification icon
   const getNotificationIcon = (type) => {
-    switch(type) {
-      case "lead":
-        return <UserPlus className="w-5 h-5 text-blue-500" />;
-      case "message":
-        return <MessageSquare className="w-5 h-5 text-green-500" />;
-      case "calendar":
-        return <Calendar className="w-5 h-5 text-purple-500" />;
-      case "email":
-        return <Mail className="w-5 h-5 text-yellow-500" />;
-      case "conversion":
-        return <TrendingUp className="w-5 h-5 text-green-500" />;
-      default:
-        return <Bell className="w-5 h-5 text-gray-500" />;
-    }
-  };
+  switch(type) {
+    case "lead":
+      return <UserPlus className="w-4 h-4 text-blue-500" />;
+    case "message":
+      return <MessageSquare className="w-4 h-4 text-green-500" />;
+    case "email":
+      return <Mail className="w-4 h-4 text-yellow-500" />;
+    case "calendar":
+      return <Calendar className="w-4 h-4 text-purple-500" />;
+    case "conversion":
+      return <TrendingUp className="w-4 h-4 text-green-500" />;
+    default:
+      return <Bell className="w-4 h-4 text-gray-500" />;
+  }
+};
 
-  // Get notification background
-  const getNotificationBg = (type, read) => {
-    if (read) return "bg-white dark:bg-gray-800";
-    switch(type) {
-      case "lead":
-        return "bg-blue-50 dark:bg-blue-900/20";
-      case "message":
-        return "bg-green-50 dark:bg-green-900/20";
-      case "calendar":
-        return "bg-purple-50 dark:bg-purple-900/20";
-      case "email":
-        return "bg-yellow-50 dark:bg-yellow-900/20";
-      default:
-        return "bg-gray-50 dark:bg-gray-800";
-    }
-  };
+// In the getNotificationBg function, add email type:
+const getNotificationBg = (type, read) => {
+  if (read) return "bg-white dark:bg-gray-800";
+  switch(type) {
+    case "lead":
+      return "bg-blue-50 dark:bg-blue-900/20";
+    case "message":
+      return "bg-green-50 dark:bg-green-900/20";
+    case "email":
+      return "bg-yellow-50 dark:bg-yellow-900/20";
+    case "calendar":
+      return "bg-purple-50 dark:bg-purple-900/20";
+    default:
+      return "bg-gray-50 dark:bg-gray-800";
+  }
+};
 
   // Format time
   const formatTime = (date) => {

@@ -1,5 +1,6 @@
 import Event from '../models/Event.js';
 import Lead from '../models/Lead.js';
+import { createNotification } from './notificationController.js';
 
 // Get events for current user
 export const getEvents = async (req, res) => {
@@ -43,7 +44,14 @@ export const createEvent = async (req, res) => {
       recurrence: recurrence || 'none',
       color: color || 'blue'
     });
-    
+  await createNotification(
+  req.user.id,
+  'calendar',
+  'New Event Created',
+  `New event "${title}" has been scheduled for ${new Date(startDate).toLocaleString()}`,
+  event._id,
+  { startDate, endDate, type }
+);
     await event.save();
     
     res.status(201).json(event);
