@@ -35,13 +35,14 @@ const Messages = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [showNewMessageModal, setShowNewMessageModal] = useState(false);
-  const [filter, setFilter] = useState("all"); // all, unread, starred
+  const [filter, setFilter] = useState("all");
   const messagesEndRef = useRef(null);
   const [newMessageForm, setNewMessageForm] = useState({
     to: "",
     subject: "",
     message: ""
   });
+  const [conversationStarred, setConversationStarred] = useState(false);
 
   // Fetch conversations
   const fetchConversations = async () => {
@@ -57,6 +58,7 @@ const Messages = () => {
   const fetchMessages = async (conversationId) => {
     try {
       const res = await API.get(`/messages/${conversationId}`);
+     
       setMessages(res.data);
     } catch (error) {
       console.error("Failed to fetch messages:", error);
@@ -92,7 +94,7 @@ const Messages = () => {
       });
       setMessageText("");
       await fetchMessages(selectedConversation.id);
-      await fetchConversations(); // Update conversations list
+      await fetchConversations();
     } catch (error) {
       console.error("Failed to send message:", error);
       alert("Failed to send message");
@@ -126,22 +128,37 @@ const Messages = () => {
 
   // Mark message as read
   const markAsRead = async (messageId) => {
+    if (!messageId) {
+      console.error("Cannot mark as read: messageId is undefined");
+      return;
+    }
     try {
       await API.put(`/messages/${messageId}/read`);
-      await fetchMessages(selectedConversation.id);
-      await fetchConversations();
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === messageId || msg._id === messageId ? { ...msg, isRead: true } : msg
+        )
+      );
     } catch (error) {
       console.error("Failed to mark as read:", error);
     }
   };
 
-  // Delete message
+  // Delete message - FIXED
   const deleteMessage = async (messageId) => {
+    if (!messageId) {
+      console.error("Cannot delete: messageId is undefined");
+      return;
+    }
+    
     if (!window.confirm("Are you sure you want to delete this message?")) return;
     
     try {
       await API.delete(`/messages/${messageId}`);
-      await fetchMessages(selectedConversation.id);
+      // Refresh messages after deletion
+      if (selectedConversation) {
+        await fetchMessages(selectedConversation.id);
+      }
       await fetchConversations();
     } catch (error) {
       console.error("Failed to delete message:", error);
@@ -150,14 +167,37 @@ const Messages = () => {
   };
 
   // Star/Unstar message
-  const toggleStar = async (messageId, isStarred) => {
+  const toggleMessageStar = async (messageId, isStarred) => {
+    if (!messageId) {
+      console.error("Cannot toggle star: messageId is undefined");
+      return;
+    }
     try {
       await API.put(`/messages/${messageId}/star`, { starred: !isStarred });
-      await fetchMessages(selectedConversation.id);
-      await fetchConversations();
+      setMessages(prev => 
+        prev.map(msg => 
+          (msg.id === messageId || msg._id === messageId) ? { ...msg, isStarred: !isStarred } : msg
+        )
+      );
     } catch (error) {
       console.error("Failed to toggle star:", error);
     }
+  };
+
+  // Star/Unstar conversation
+  const toggleConversationStar = async (conversationId, isStarred) => {
+    try {
+      await API.put(`/messages/conversation/${conversationId}/star`, { starred: !isStarred });
+      setConversationStarred(!isStarred);
+      await fetchConversations();
+    } catch (error) {
+      console.error("Failed to toggle conversation star:", error);
+    }
+  };
+
+  // Get message ID (handles both id and _id)
+  const getMessageId = (msg) => {
+    return msg.id || msg._id;
   };
 
   // Filter conversations
@@ -286,6 +326,7 @@ const Messages = () => {
                     key={conv.id}
                     onClick={() => {
                       setSelectedConversation(conv);
+                      setConversationStarred(conv.starred);
                       fetchMessages(conv.id);
                     }}
                     className={`p-4 border-b border-gray-100 dark:border-gray-700 cursor-pointer transition hover:bg-gray-50 dark:hover:bg-gray-700 ${
@@ -355,7 +396,7 @@ const Messages = () => {
               </div>
             ) : (
               <>
-                {/* Conversation Header */}
+                {/* Conversation Header with Star Button */}
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -375,23 +416,21 @@ const Messages = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => toggleStar(selectedConversation.id, selectedConversation.starred)}
-                        className="p-2 text-gray-500 hover:text-yellow-500 transition"
+                        onClick={() => toggleConversationStar(selectedConversation.id, conversationStarred)}
+                        className="p-2 text-gray-500 hover:text-yellow-500 transition rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title={conversationStarred ? "Remove from starred" : "Star conversation"}
                       >
-                        {selectedConversation.starred ? (
+                        {conversationStarred ? (
                           <Star className="w-5 h-5 fill-yellow-500 text-yellow-500" />
                         ) : (
                           <StarOff className="w-5 h-5" />
                         )}
                       </button>
-                      <button className="p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                        <MoreVertical className="w-5 h-5" />
-                      </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Messages List */}
+                {/* Messages List with Star and Delete on Each Message */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   {messages.length === 0 ? (
                     <div className="text-center py-8">
@@ -399,44 +438,70 @@ const Messages = () => {
                       <p className="text-sm text-gray-400 mt-1">Send a message to start the conversation</p>
                     </div>
                   ) : (
-                    messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.senderId === user?.id ? "justify-end" : "justify-start"}`}
-                      >
-                        <div className={`max-w-[70%] ${msg.senderId === user?.id ? "order-2" : "order-1"}`}>
-                          <div className={`rounded-lg p-3 ${
-                            msg.senderId === user?.id
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
-                          }`}>
-                            <p className="text-sm">{msg.text}</p>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                              {formatTime(msg.createdAt)}
-                            </span>
-                            {msg.read && msg.senderId === user?.id && (
-                              <CheckCircle className="w-3 h-3 text-green-500" />
-                            )}
-                            <button
-                              onClick={() => deleteMessage(msg.id)}
-                              className="text-xs text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition"
-                            >
-                              Delete
-                            </button>
+                    messages.map((msg) => {
+                      const messageId = getMessageId(msg);
+                      return (
+                        <div
+                          key={messageId}
+                          className={`flex ${msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'} group`}
+                        >
+                          <div className={`max-w-[70%] ${msg.direction === 'outgoing' ? 'order-2' : 'order-1'}`}>
+                            <div className={`rounded-lg p-3 ${
+                              msg.direction === 'outgoing'
+                                ? "bg-blue-600 text-white"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
+                            }`}>
+                              {msg.direction === 'incoming' && (
+                                <p className="text-xs opacity-75 mb-1">
+                                  {msg.senderName || msg.senderEmail}
+                                </p>
+                              )}
+                              <p className="text-sm">{msg.text}</p>
+                            </div>
+                            <div className="flex items-center justify-between gap-2 mt-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {formatTime(msg.createdAt)}
+                                </span>
+                                {msg.isRead && msg.direction === 'outgoing' && (
+                                  <CheckCircle className="w-3 h-3 text-green-500" />
+                                )}
+                              </div>
+                              {/* Message Action Buttons */}
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                                <button
+                                  onClick={() => toggleMessageStar(messageId, msg.isStarred)}
+                                  className="p-1 text-gray-400 hover:text-yellow-500 transition rounded"
+                                  title={msg.isStarred ? "Remove star" : "Star message"}
+                                >
+                                  {msg.isStarred ? (
+                                    <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                                  ) : (
+                                    <StarOff className="w-3 h-3" />
+                                  )}
+                                </button>
+                                <button
+                                  onClick={() => deleteMessage(messageId)}
+                                  className="p-1 text-gray-400 hover:text-red-500 transition rounded"
+                                  title="Delete message"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                                {msg.direction === 'incoming' && !msg.isRead && (
+                                  <button
+                                    onClick={() => markAsRead(messageId)}
+                                    className="p-1 text-blue-500 hover:text-blue-600 transition rounded text-xs"
+                                    title="Mark as read"
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        {msg.senderId !== user?.id && !msg.read && (
-                          <button
-                            onClick={() => markAsRead(msg.id)}
-                            className="ml-2 text-xs text-blue-500 hover:text-blue-600 self-center"
-                          >
-                            Mark as read
-                          </button>
-                        )}
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                   <div ref={messagesEndRef} />
                 </div>

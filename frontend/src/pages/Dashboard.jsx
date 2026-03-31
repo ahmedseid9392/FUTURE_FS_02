@@ -33,8 +33,7 @@ const Dashboard = () => {
     fetchLeads();
   }, []);
 
- // In Dashboard.jsx and Analytics.jsx
-// In Dashboard.jsx, add the recentLeads calculation after fetching leads
+ 
 const fetchLeads = async () => {
   try {
     setLoading(true);
@@ -81,22 +80,7 @@ const fetchLeads = async () => {
     }
   };
 
-  const exportData = async () => {
-  try {
-    const res = await API.get('/export/all', { responseType: 'blob' });
-    const url = window.URL.createObjectURL(new Blob([res.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `leadcrm_export_${Date.now()}.json`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } catch (error) {
-    console.error('Export failed:', error);
-    alert('Export failed');
-  }
-};
-
+ 
   // Calculate weekly trend (last 7 days)
   const getWeeklyTrend = () => {
     const last7Days = [];
@@ -124,13 +108,8 @@ const fetchLeads = async () => {
       <div className="min-h-screen">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1> <button
-  onClick={exportData}
-  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
->
-  <Download className="w-4 h-4" />
-  Export Data
-</button>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+   
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Welcome back! Here's what's happening with your leads today.
           </p>

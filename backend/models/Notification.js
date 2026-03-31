@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   type: {
     type: String,
     enum: ['lead', 'message', 'email', 'calendar', 'conversion', 'system'],
@@ -26,18 +32,15 @@ const notificationSchema = new mongoose.Schema({
     type: Object,
     default: {}
   },
-  // User-specific field
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    index: true
-  },
   createdAt: {
     type: Date,
     default: Date.now
   }
 });
+
+// Create index for faster queries
+notificationSchema.index({ userId: 1, createdAt: -1 });
+notificationSchema.index({ userId: 1, read: 1 });
 
 const Notification = mongoose.model('Notification', notificationSchema);
 export default Notification;

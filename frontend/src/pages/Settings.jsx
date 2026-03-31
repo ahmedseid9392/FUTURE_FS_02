@@ -913,35 +913,13 @@ const Settings = () => {
                       <p className="font-medium text-gray-900 dark:text-white">Export All Data</p>
                       <p className="text-sm text-gray-500">Download all your leads, messages, and settings</p>
                     </div>
-                    <button
-                      onClick={exportData}
-                      className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                    >
-                      <Download className="w-4 h-4" />
-                      Export
-                    </button>
+                   
                   </div>
                 </div>
               </div>
               
-              {/* Import Data */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Import Data</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Import leads from CSV or JSON files</p>
-                </div>
-                
-                <div className="p-6">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-500 transition">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Click to upload or drag and drop</p>
-                      <p className="text-xs text-gray-400 mt-1">CSV or JSON files only</p>
-                    </div>
-                    <input type="file" className="hidden" accept=".csv,.json" />
-                  </label>
-                </div>
-              </div>
+            
+            
               
               {/* Danger Zone */}
               <div className="bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800">
