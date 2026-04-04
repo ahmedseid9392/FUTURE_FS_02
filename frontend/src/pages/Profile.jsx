@@ -219,17 +219,17 @@ const Profile = () => {
                 {/* Profile Picture */}
                 <div className="relative inline-block">
                   <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center mx-auto">
-                    {user.avatar ? (
-                      <img 
-                        src={`http://localhost:5000${user.avatar}`} 
-                        alt={user.fullName || user.username}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-4xl font-bold text-white">
-                        {getInitials()}
-                      </span>
-                    )}
+                   {user.avatar ? (
+  <img 
+    src={user.avatar}  // Cloudinary URL
+    alt={user.fullName || user.username}
+    className="w-full h-full object-cover"
+  />
+) : (
+  <span className="text-4xl font-bold text-white">
+    {getInitials()}
+  </span>
+)}
                   </div>
                   
                   <button

@@ -10,6 +10,7 @@ import {
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import { googleAuth } from '../controllers/googleAuthController.js';
 
+
 const router = express.Router();
 
 // Public routes
