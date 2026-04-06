@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useDarkMode } from "../context/DarkModeContext";
 import { Mail, ArrowLeft, CheckCircle, AlertCircle, Moon, Sun } from "lucide-react";
 import API from "../services/api";
 
 const ForgotPassword = () => {
-  const navigate = useNavigate();
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
+  
+const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);

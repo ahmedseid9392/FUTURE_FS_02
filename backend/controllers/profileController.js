@@ -62,28 +62,24 @@ export const changePassword = async (req, res) => {
 // Upload Avatar to Cloudinary - FIXED
 export const uploadAvatar = async (req, res) => {
   try {
-    console.log('=== Upload Avatar Request ===');
-    console.log('User ID:', req.user.id);
-    console.log('File received:', req.file);
+   
     
     if (!req.file) {
-      console.log('No file in request');
+     
       return res.status(400).json({ message: 'No file uploaded' });
     }
     
-    console.log('File path:', req.file.path);
-    console.log('File size:', req.file.size);
-    console.log('File mimetype:', req.file.mimetype);
+   
     
     // Check if file exists
     if (!fs.existsSync(req.file.path)) {
-      console.log('File does not exist at path:', req.file.path);
+     
       return res.status(400).json({ message: 'File upload failed' });
     }
     
     const user = await User.findById(req.user.id);
     if (!user) {
-      console.log('User not found');
+     
       return res.status(404).json({ message: 'User not found' });
     }
     
@@ -92,7 +88,7 @@ export const uploadAvatar = async (req, res) => {
       try {
         const publicId = user.avatar.split('/').pop().split('.')[0];
         await cloudinary.uploader.destroy(`crm_avatars/${publicId}`);
-        console.log('Old avatar deleted from Cloudinary');
+        
       } catch (deleteError) {
         console.log('Error deleting old avatar:', deleteError.message);
       }
@@ -110,7 +106,7 @@ export const uploadAvatar = async (req, res) => {
       fetch_format: 'auto'
     });
     
-    console.log('Cloudinary upload successful:', result.secure_url);
+  
     
     // Update user avatar URL
     const updatedUser = await User.findByIdAndUpdate(
@@ -163,7 +159,7 @@ export const removeAvatar = async (req, res) => {
     if (user.avatar && user.avatar.includes('cloudinary')) {
       const publicId = user.avatar.split('/').pop().split('.')[0];
       await cloudinary.uploader.destroy(`crm_avatars/${publicId}`);
-      console.log('Avatar deleted from Cloudinary');
+     
     }
     
     await User.findByIdAndUpdate(req.user.id, { avatar: null });

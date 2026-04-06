@@ -45,11 +45,7 @@ export const getReports = async (req, res) => {
     const { range } = req.query;
     const { startDate, endDate } = getDateRange(range);
     
-    console.log('========== REPORTS REQUEST ==========');
-    console.log('User ID:', req.user.id);
-    console.log('User Email:', req.user.email);
-    console.log('Range:', range);
-    console.log('Date Range:', { startDate, endDate });
+   
     
     // Get leads for current user within date range
     const leads = await Lead.find({
@@ -209,9 +205,7 @@ export const getReports = async (req, res) => {
     
     const revenue = convertedLeads * 500;
     
-    console.log('========== SENDING RESPONSE ==========');
-    console.log(`Total leads: ${totalLeads}`);
-    console.log('====================================\n');
+   
     
     res.json({
       totalLeads,

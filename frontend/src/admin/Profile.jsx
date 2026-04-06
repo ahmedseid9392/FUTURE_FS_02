@@ -3,12 +3,9 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import Layout from "../components/Layout";
 import { 
-  User, 
   Mail, 
   Lock, 
   Camera, 
-  Save, 
-  X, 
   Eye, 
   EyeOff,
   CheckCircle,

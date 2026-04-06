@@ -8,7 +8,6 @@ import {
   TrendingUp,
   MessageSquare,
   LogOut,
-  Mail,
   Calendar,
   FileText
 } from "lucide-react";

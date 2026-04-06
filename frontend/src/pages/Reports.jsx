@@ -2,21 +2,19 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import API from "../services/api";
-import { 
-  Download, 
-  Calendar, 
-  TrendingUp, 
+import {
+  Download,
+  Calendar,
+  TrendingUp,
   TrendingDown,
-  Users, 
-  CheckCircle, 
+  Users,
+
   Clock,
   BarChart3,
   PieChart,
-  FileText,
-  Filter,
+
   RefreshCw,
-  Mail,
-  Activity,
+
   Target,
   Award,
   AlertCircle
@@ -44,9 +42,9 @@ const Reports = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       let params = {};
-      
+
       if (dateRange === "custom" && customStartDate && customEndDate) {
         params = {
           startDate: customStartDate,
@@ -55,17 +53,16 @@ const Reports = () => {
       } else {
         params = { range: dateRange };
       }
-      
-      console.log("Fetching reports with params:", params);
-      
+
+
+
       const res = await API.get("/reports", { params });
-      console.log("Reports API Response:", res.data);
-      
+
       setReportData(res.data);
     } catch (error) {
       console.error("Failed to fetch report data:", error);
       setError(error.response?.data?.message || "Failed to load reports");
-      
+
       setReportData({
         totalLeads: 0,
         conversionRate: 0,
@@ -98,14 +95,14 @@ const Reports = () => {
       } else {
         url = `/reports/export/json?range=${dateRange}`;
       }
-      
+
       if (dateRange === "custom" && customStartDate && customEndDate) {
         url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
       }
-      
+
       const res = await API.get(url, { responseType: 'blob' });
-      const blob = new Blob([res.data], { 
-        type: exportFormat === "csv" ? 'text/csv' : 'application/json' 
+      const blob = new Blob([res.data], {
+        type: exportFormat === "csv" ? 'text/csv' : 'application/json'
       });
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -177,8 +174,8 @@ const Reports = () => {
     );
   }
 
-  const maxCount = reportData.leadTrend?.length > 0 
-    ? Math.max(...reportData.leadTrend.map(d => d.count), 1) 
+  const maxCount = reportData.leadTrend?.length > 0
+    ? Math.max(...reportData.leadTrend.map(d => d.count), 1)
     : 1;
 
   return (
@@ -227,11 +224,10 @@ const Reports = () => {
                     if (range.value !== "custom") setShowCustomDate(false);
                     else setShowCustomDate(true);
                   }}
-                  className={`px-3 py-1 rounded-lg text-sm transition ${
-                    dateRange === range.value
+                  className={`px-3 py-1 rounded-lg text-sm transition ${dateRange === range.value
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                  }`}
+                    }`}
                 >
                   {range.label}
                 </button>
@@ -276,11 +272,10 @@ const Reports = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all ${activeTab === tab.id
                     ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
+                  }`}
               >
                 {tab.icon}
                 {tab.label}
@@ -303,7 +298,7 @@ const Reports = () => {
                   <Users className="w-8 h-8 text-blue-500" />
                 </div>
               </div>
-              
+
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
@@ -313,7 +308,7 @@ const Reports = () => {
                   <Target className="w-8 h-8 text-green-500" />
                 </div>
               </div>
-              
+
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
@@ -323,7 +318,7 @@ const Reports = () => {
                   <Clock className="w-8 h-8 text-yellow-500" />
                 </div>
               </div>
-              
+
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
@@ -345,29 +340,27 @@ const Reports = () => {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button 
+                  <button
                     onClick={() => setChartType('bar')}
-                    className={`px-3 py-1 text-sm rounded-lg transition ${
-                      chartType === 'bar' 
-                        ? 'bg-blue-600 text-white' 
+                    className={`px-3 py-1 text-sm rounded-lg transition ${chartType === 'bar'
+                        ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     Bar Chart
                   </button>
-                  <button 
+                  <button
                     onClick={() => setChartType('line')}
-                    className={`px-3 py-1 text-sm rounded-lg transition ${
-                      chartType === 'line' 
-                        ? 'bg-blue-600 text-white' 
+                    className={`px-3 py-1 text-sm rounded-lg transition ${chartType === 'line'
+                        ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200'
-                    }`}
+                      }`}
                   >
                     Line Chart
                   </button>
                 </div>
               </div>
-              
+
               {reportData.leadTrend && reportData.leadTrend.length > 0 ? (
                 <div>
                   {/* Summary Stats */}
@@ -397,7 +390,7 @@ const Reports = () => {
                       <p className="text-xs text-gray-500 dark:text-gray-400">Latest Day</p>
                     </div>
                   </div>
-                  
+
                   {/* Chart */}
                   <div className="h-80">
                     {chartType === 'bar' ? (
@@ -409,7 +402,7 @@ const Reports = () => {
                           return (
                             <div key={index} className="flex-1 flex flex-col items-center min-w-[60px] group">
                               <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-t-lg relative">
-                                <div 
+                                <div
                                   className="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg transition-all duration-500 cursor-pointer hover:from-blue-600 hover:to-blue-500"
                                   style={{ height: `${barHeight}%`, minHeight: '4px' }}
                                 >
@@ -435,7 +428,7 @@ const Reports = () => {
                           <line x1="0" y1="180" x2="800" y2="180" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
                           <line x1="0" y1="120" x2="800" y2="120" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
                           <line x1="0" y1="60" x2="800" y2="60" stroke="#e5e7eb" strokeWidth="1" strokeDasharray="4" />
-                          
+
                           <polyline
                             points={reportData.leadTrend.map((item, i) => {
                               const x = (i / (reportData.leadTrend.length - 1)) * 800;
@@ -448,7 +441,7 @@ const Reports = () => {
                             strokeWidth="3"
                             className="dark:stroke-blue-400"
                           />
-                          
+
                           <polygon
                             points={`0,240 ${reportData.leadTrend.map((item, i) => {
                               const x = (i / (reportData.leadTrend.length - 1)) * 800;
@@ -458,7 +451,7 @@ const Reports = () => {
                             }).join(' ')} 800,240 0,240`}
                             fill="rgba(59, 130, 246, 0.1)"
                           />
-                          
+
                           {reportData.leadTrend.map((item, i) => {
                             const x = (i / (reportData.leadTrend.length - 1)) * 800;
                             const maxCount = Math.max(...reportData.leadTrend.map(d => d.count), 1);
@@ -479,7 +472,7 @@ const Reports = () => {
                             );
                           })}
                         </svg>
-                        
+
                         <div className="flex justify-between mt-2 px-2">
                           {reportData.leadTrend.map((item, i) => (
                             <div key={i} className="text-center text-xs text-gray-500 dark:text-gray-400" style={{ width: `${100 / reportData.leadTrend.length}%` }}>
@@ -490,7 +483,7 @@ const Reports = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {/* Trend Indicator */}
                   {reportData.leadTrend.length >= 2 && (
                     <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
@@ -502,7 +495,7 @@ const Reports = () => {
                             const secondHalf = reportData.leadTrend.slice(Math.ceil(reportData.leadTrend.length / 2)).reduce((sum, d) => sum + d.count, 0);
                             const percentChange = firstHalf ? ((secondHalf - firstHalf) / firstHalf * 100).toFixed(1) : 0;
                             const isIncreasing = percentChange > 0;
-                            
+
                             return (
                               <div className={`flex items-center gap-1 ${isIncreasing ? 'text-green-600' : 'text-red-600'}`}>
                                 {isIncreasing ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
@@ -546,7 +539,7 @@ const Reports = () => {
                         <span className="text-sm font-semibold text-gray-900 dark:text-white">{source.count}</span>
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full"
                           style={{ width: `${source.percentage}%` }}
                         />

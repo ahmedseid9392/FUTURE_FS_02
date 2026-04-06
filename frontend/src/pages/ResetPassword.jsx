@@ -9,7 +9,7 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  
+
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -67,16 +67,16 @@ const ResetPassword = () => {
         newPassword: password
       });
       setResetSuccess(true);
-      
+
       // Clear any existing tokens
       localStorage.removeItem("token");
       sessionStorage.removeItem("token");
-      
+
       // Redirect to landing after 3 seconds
       setTimeout(() => {
         navigate("/");
       }, 3000);
-      
+
     } catch (err) {
       setError(err.response?.data?.message || "Failed to reset password");
     } finally {

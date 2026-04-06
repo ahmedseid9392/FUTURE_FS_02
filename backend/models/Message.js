@@ -9,7 +9,7 @@ const messageSchema = new mongoose.Schema({
   senderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false,  // Changed to false for incoming emails
+    required: false,  
     default: null
   },
   senderEmail: {

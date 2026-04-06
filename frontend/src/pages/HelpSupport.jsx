@@ -15,22 +15,16 @@ import {
   Star,
   Send,
   CheckCircle,
-  AlertCircle,
-  ExternalLink,
-  Download,
-  User,
-  Calendar,
+ExternalLink,
+Calendar,
   Clock,
-  ThumbsUp,
-  ThumbsDown,
-  Zap,
+ Zap,
   Shield,
   Users,
   BarChart3,
   MessageCircle,
   LifeBuoy,
   Book,
-  Globe,
   Twitter,
   Facebook,
   Linkedin,
@@ -434,7 +428,7 @@ const HelpSupport = () => {
                   Mon-Fri, 9am-6pm EST
                 </p>
                 <a href="tel:+15551234567" className="text-blue-600 dark:text-blue-400 hover:underline">
-                  +1 (555) 123-4567
+                  +251 (555) 123-456
                 </a>
               </div>
 

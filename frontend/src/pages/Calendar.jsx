@@ -2,30 +2,21 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import API from "../services/api";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Plus, 
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
   Calendar as CalendarIcon,
-  Clock,
   Users,
   MessageSquare,
   Phone,
   Video,
-  MapPin,
   X,
-  Edit2,
   Trash2,
   CheckCircle,
   AlertCircle,
-  Repeat,
-  Bell,
-  Mail,
-  Filter,
-  Download,
-  ChevronDown,
-  List,
-  Grid
+  Filter
+
 } from "lucide-react";
 
 const Calendar = () => {
@@ -41,7 +32,7 @@ const Calendar = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
-  
+
   // Event Form State
   const [eventForm, setEventForm] = useState({
     title: "",
@@ -58,7 +49,7 @@ const Calendar = () => {
     recurrence: "none",
     color: "blue"
   });
-  
+
   const [leads, setLeads] = useState([]);
   const [attendeesList, setAttendeesList] = useState("");
 
@@ -91,7 +82,7 @@ const Calendar = () => {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth() + 1;
       const res = await API.get(`/calendar/events?year=${year}&month=${month}`);
-      console.log("Fetched events:", res.data);
+
       setEvents(res.data);
     } catch (error) {
       console.error("Failed to fetch events:", error);
@@ -145,7 +136,7 @@ const Calendar = () => {
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
+
     const days = [];
     // Previous month days
     const prevMonthLastDay = new Date(year, month, 0).getDate();
@@ -156,7 +147,7 @@ const Calendar = () => {
         events: []
       });
     }
-    
+
     // Current month days
     for (let i = 1; i <= daysInMonth; i++) {
       days.push({
@@ -165,7 +156,7 @@ const Calendar = () => {
         events: []
       });
     }
-    
+
     // Next month days
     const remainingDays = 42 - days.length;
     for (let i = 1; i <= remainingDays; i++) {
@@ -175,7 +166,7 @@ const Calendar = () => {
         events: []
       });
     }
-    
+
     // Add events to days
     days.forEach(day => {
       day.events = events.filter(event => {
@@ -183,30 +174,30 @@ const Calendar = () => {
         return eventDate.toDateString() === day.date.toDateString();
       });
     });
-    
+
     return days;
   };
 
   // Create/Update Event
   const handleSaveEvent = async (e) => {
     e.preventDefault();
-    
+
     const startDateTime = new Date(`${eventForm.startDate}T${eventForm.startTime}`);
     const endDateTime = new Date(`${eventForm.endDate}T${eventForm.endTime}`);
-    
+
     if (startDateTime >= endDateTime) {
       setError("End time must be after start time");
       setTimeout(() => setError(""), 3000);
       return;
     }
-    
+
     const eventData = {
       ...eventForm,
       startDate: startDateTime,
       endDate: endDateTime,
       attendees: attendeesList.split(",").map(a => a.trim()).filter(a => a)
     };
-    
+
     try {
       if (selectedEvent) {
         await API.put(`/calendar/events/${selectedEvent._id}`, eventData);
@@ -230,7 +221,7 @@ const Calendar = () => {
   // Delete Event
   const handleDeleteEvent = async () => {
     if (!window.confirm("Are you sure you want to delete this event?")) return;
-    
+
     try {
       await API.delete(`/calendar/events/${selectedEvent._id}`);
       setShowEventModal(false);
@@ -298,7 +289,7 @@ const Calendar = () => {
   };
 
   const getEventTypeIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case "meeting": return <Users className="w-3 h-3" />;
       case "call": return <Phone className="w-3 h-3" />;
       case "video": return <Video className="w-3 h-3" />;
@@ -350,7 +341,7 @@ const Calendar = () => {
             <p className="text-green-700 dark:text-green-400">{successMessage}</p>
           </div>
         )}
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-red-500" />
@@ -364,51 +355,46 @@ const Calendar = () => {
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setFilter("all")}
-                className={`px-3 py-1 rounded-full text-sm transition ${
-                  filter === "all"
+                className={`px-3 py-1 rounded-full text-sm transition ${filter === "all"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 All Events
               </button>
               <button
                 onClick={() => setFilter("meeting")}
-                className={`px-3 py-1 rounded-full text-sm transition ${
-                  filter === "meeting"
+                className={`px-3 py-1 rounded-full text-sm transition ${filter === "meeting"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Meetings
               </button>
               <button
                 onClick={() => setFilter("call")}
-                className={`px-3 py-1 rounded-full text-sm transition ${
-                  filter === "call"
+                className={`px-3 py-1 rounded-full text-sm transition ${filter === "call"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Calls
               </button>
               <button
                 onClick={() => setFilter("video")}
-                className={`px-3 py-1 rounded-full text-sm transition ${
-                  filter === "video"
+                className={`px-3 py-1 rounded-full text-sm transition ${filter === "video"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Video Calls
               </button>
               <button
                 onClick={() => setFilter("followup")}
-                className={`px-3 py-1 rounded-full text-sm transition ${
-                  filter === "followup"
+                className={`px-3 py-1 rounded-full text-sm transition ${filter === "followup"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Follow-ups
               </button>
@@ -438,39 +424,36 @@ const Calendar = () => {
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
-          
+
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </h2>
-          
+
           <div className="flex gap-2">
             <button
               onClick={() => setView("month")}
-              className={`px-4 py-2 rounded-lg transition ${
-                view === "month"
+              className={`px-4 py-2 rounded-lg transition ${view === "month"
                   ? "bg-blue-600 text-white"
                   : "border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
-              }`}
+                }`}
             >
               Month
             </button>
             <button
               onClick={() => setView("week")}
-              className={`px-4 py-2 rounded-lg transition ${
-                view === "week"
+              className={`px-4 py-2 rounded-lg transition ${view === "week"
                   ? "bg-blue-600 text-white"
                   : "border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
-              }`}
+                }`}
             >
               Week
             </button>
             <button
               onClick={() => setView("day")}
-              className={`px-4 py-2 rounded-lg transition ${
-                view === "day"
+              className={`px-4 py-2 rounded-lg transition ${view === "day"
                   ? "bg-blue-600 text-white"
                   : "border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
-              }`}
+                }`}
             >
               Day
             </button>
@@ -488,7 +471,7 @@ const Calendar = () => {
                 </div>
               ))}
             </div>
-            
+
             {/* Calendar Grid */}
             <div className="grid grid-cols-7 auto-rows-fr">
               {loading ? (
@@ -500,18 +483,16 @@ const Calendar = () => {
                   <div
                     key={index}
                     onClick={() => openEventModal(null, day.date)}
-                    className={`min-h-[120px] p-2 border-r border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition ${
-                      !day.isCurrentMonth ? "bg-gray-50 dark:bg-gray-900/50" : ""
-                    }`}
+                    className={`min-h-[120px] p-2 border-r border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition ${!day.isCurrentMonth ? "bg-gray-50 dark:bg-gray-900/50" : ""
+                      }`}
                   >
-                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm ${
-                      day.date.toDateString() === new Date().toDateString()
+                    <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-sm ${day.date.toDateString() === new Date().toDateString()
                         ? "bg-blue-600 text-white"
                         : "text-gray-700 dark:text-gray-300"
-                    }`}>
+                      }`}>
                       {day.date.getDate()}
                     </span>
-                    
+
                     <div className="mt-1 space-y-1">
                       {filteredEvents(day.events).slice(0, 3).map((event) => (
                         <div
@@ -553,7 +534,7 @@ const Calendar = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               <form onSubmit={handleSaveEvent} className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -567,7 +548,7 @@ const Calendar = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -584,7 +565,7 @@ const Calendar = () => {
                       <option value="followup">Follow-up</option>
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Color
@@ -595,15 +576,14 @@ const Calendar = () => {
                           key={color}
                           type="button"
                           onClick={() => setEventForm({ ...eventForm, color })}
-                          className={`w-8 h-8 rounded-full ${eventColors[color].split(' ')[0]} ${
-                            eventForm.color === color ? "ring-2 ring-offset-2 ring-gray-400" : ""
-                          }`}
+                          className={`w-8 h-8 rounded-full ${eventColors[color].split(' ')[0]} ${eventForm.color === color ? "ring-2 ring-offset-2 ring-gray-400" : ""
+                            }`}
                         />
                       ))}
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -629,7 +609,7 @@ const Calendar = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -655,7 +635,7 @@ const Calendar = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Location / Meeting Link
@@ -668,7 +648,7 @@ const Calendar = () => {
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Description
@@ -681,7 +661,7 @@ const Calendar = () => {
                     placeholder="Add details about this event..."
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Attendees (comma separated)
@@ -694,7 +674,7 @@ const Calendar = () => {
                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -711,7 +691,7 @@ const Calendar = () => {
                       ))}
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Reminder (minutes before)
@@ -732,7 +712,7 @@ const Calendar = () => {
                     </select>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Recurrence
@@ -748,7 +728,7 @@ const Calendar = () => {
                     <option value="monthly">Monthly</option>
                   </select>
                 </div>
-                
+
                 <div className="flex gap-3 pt-4">
                   <button
                     type="submit"

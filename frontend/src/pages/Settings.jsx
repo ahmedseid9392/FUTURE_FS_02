@@ -3,16 +3,16 @@ import { useAuth } from "../context/AuthContext";
 import { useDarkMode } from "../context/DarkModeContext";
 import Layout from "../components/Layout";
 import API from "../services/api";
-import { 
-  User, 
-  Bell, 
-  Shield, 
-  Globe, 
-  Moon, 
-  Sun, 
-  Mail, 
-  Lock, 
-  Save, 
+import {
+  User,
+  Bell,
+  Shield,
+
+  Moon,
+  Sun,
+
+  Lock,
+  Save,
   X,
   Eye,
   EyeOff,
@@ -20,26 +20,22 @@ import {
   AlertCircle,
   Trash2,
   Database,
-  RefreshCw,
-  Download,
-  Upload,
+
   Key,
   Smartphone,
-  CreditCard,
-  Languages,
+
   Palette,
-  Volume2,
+
   Monitor,
-  Tablet,
+
   Smartphone as MobileIcon,
-  Plus,
-  Minus
+
 } from "lucide-react";
 
 const Settings = () => {
   const { user, updateProfile, changePassword, logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  
+
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -47,7 +43,7 @@ const Settings = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   // Profile Settings
   const [profileForm, setProfileForm] = useState({
     fullName: "",
@@ -60,14 +56,14 @@ const Settings = () => {
     timezone: "UTC",
     language: "en"
   });
-  
+
   // Password Settings
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
-  
+
   // Notification Settings
   const [notificationSettings, setNotificationSettings] = useState({
     emailNotifications: true,
@@ -79,7 +75,7 @@ const Settings = () => {
     desktopNotifications: true,
     soundAlerts: false
   });
-  
+
   // Appearance Settings
   const [appearanceSettings, setAppearanceSettings] = useState({
     theme: isDarkMode ? "dark" : "light",
@@ -88,7 +84,7 @@ const Settings = () => {
     animations: true,
     sidebarCollapsed: false
   });
-  
+
   // Security Settings
   const [securitySettings, setSecuritySettings] = useState({
     twoFactorAuth: false,
@@ -96,7 +92,7 @@ const Settings = () => {
     loginAlerts: true,
     deviceManagement: false
   });
-  
+
   // Data Settings
   const [dataSettings, setDataSettings] = useState({
     autoBackup: false,
@@ -126,7 +122,7 @@ const Settings = () => {
     setLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
-    
+
     try {
       const res = await API.put("/auth/profile", profileForm);
       await updateProfile(profileForm);
@@ -139,39 +135,39 @@ const Settings = () => {
       setLoading(false);
     }
   };
-  
+
   // Change Password
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       setErrorMessage("New passwords do not match");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    
+
     if (passwordForm.newPassword.length < 6) {
       setErrorMessage("Password must be at least 6 characters");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    
+
     setLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
-    
+
     try {
       await API.put("/auth/change-password", {
         currentPassword: passwordForm.currentPassword,
         newPassword: passwordForm.newPassword
       });
-      
+
       setPasswordForm({
         currentPassword: "",
         newPassword: "",
         confirmPassword: ""
       });
-      
+
       setSuccessMessage("Password changed successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
@@ -181,7 +177,7 @@ const Settings = () => {
       setLoading(false);
     }
   };
-  
+
   // Save Notification Settings
   const handleSaveNotifications = async () => {
     setLoading(true);
@@ -196,7 +192,7 @@ const Settings = () => {
       setLoading(false);
     }
   };
-  
+
   // Save Appearance Settings
   const handleSaveAppearance = async () => {
     if (appearanceSettings.theme === "dark" && !isDarkMode) {
@@ -204,11 +200,11 @@ const Settings = () => {
     } else if (appearanceSettings.theme === "light" && isDarkMode) {
       toggleDarkMode();
     }
-    
+
     setSuccessMessage("Appearance settings saved!");
     setTimeout(() => setSuccessMessage(""), 3000);
   };
-  
+
   // Export Data
   const exportData = async () => {
     try {
@@ -227,7 +223,7 @@ const Settings = () => {
       setTimeout(() => setErrorMessage(""), 3000);
     }
   };
-  
+
   // Delete Account
   const deleteAccount = async () => {
     const confirmed = window.confirm(
@@ -238,15 +234,15 @@ const Settings = () => {
       "- Remove all your data\n\n" +
       "This action cannot be undone. Are you absolutely sure?"
     );
-    
+
     if (!confirmed) return;
-    
+
     const confirmText = prompt("Type 'DELETE' to confirm account deletion:");
     if (confirmText !== "DELETE") {
       alert("Account deletion cancelled. You must type 'DELETE' to confirm.");
       return;
     }
-    
+
     setLoading(true);
     try {
       await API.delete("/auth/account");
@@ -257,7 +253,7 @@ const Settings = () => {
       setLoading(false);
     }
   };
-  
+
   const tabs = [
     { id: "profile", label: "Profile", icon: <User className="w-4 h-4" /> },
     { id: "security", label: "Security", icon: <Shield className="w-4 h-4" /> },
@@ -276,7 +272,7 @@ const Settings = () => {
             Manage your account preferences and system settings
           </p>
         </div>
-        
+
         {/* Success/Error Messages */}
         {successMessage && (
           <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
@@ -284,14 +280,14 @@ const Settings = () => {
             <p className="text-green-700 dark:text-green-400">{successMessage}</p>
           </div>
         )}
-        
+
         {errorMessage && (
           <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-red-500" />
             <p className="text-red-700 dark:text-red-400">{errorMessage}</p>
           </div>
         )}
-        
+
         {/* Tabs */}
         <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
           <nav className="flex gap-1 overflow-x-auto">
@@ -299,11 +295,10 @@ const Settings = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all ${activeTab === tab.id
                     ? "text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400"
                     : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                }`}
+                  }`}
               >
                 {tab.icon}
                 {tab.label}
@@ -311,7 +306,7 @@ const Settings = () => {
             ))}
           </nav>
         </div>
-        
+
         {/* Tab Content */}
         <div className="max-w-4xl">
           {/* Profile Settings */}
@@ -321,7 +316,7 @@ const Settings = () => {
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Profile Information</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Update your personal information</p>
               </div>
-              
+
               <form onSubmit={handleUpdateProfile} className="p-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -336,7 +331,7 @@ const Settings = () => {
                       placeholder="Enter your full name"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Username
@@ -350,7 +345,7 @@ const Settings = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -364,7 +359,7 @@ const Settings = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Phone Number
@@ -378,7 +373,7 @@ const Settings = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -392,7 +387,7 @@ const Settings = () => {
                       placeholder="Your company name"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Position / Role
@@ -406,7 +401,7 @@ const Settings = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Bio
@@ -419,7 +414,7 @@ const Settings = () => {
                     placeholder="Tell us a little about yourself..."
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -442,7 +437,7 @@ const Settings = () => {
                       <option value="Australia/Sydney">Australian Eastern Time (AET)</option>
                     </select>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Language
@@ -461,7 +456,7 @@ const Settings = () => {
                     </select>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end pt-4">
                   <button
                     type="submit"
@@ -475,7 +470,7 @@ const Settings = () => {
               </form>
             </div>
           )}
-          
+
           {/* Security Settings */}
           {activeTab === "security" && (
             <div className="space-y-6">
@@ -488,7 +483,7 @@ const Settings = () => {
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Update your password to keep your account secure</p>
                 </div>
-                
+
                 <form onSubmit={handleChangePassword} className="p-6 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -511,7 +506,7 @@ const Settings = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       New Password
@@ -534,7 +529,7 @@ const Settings = () => {
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters</p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Confirm New Password
@@ -556,7 +551,7 @@ const Settings = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end pt-4">
                     <button
                       type="submit"
@@ -569,7 +564,7 @@ const Settings = () => {
                   </div>
                 </form>
               </div>
-              
+
               {/* Two-Factor Authentication */}
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -579,7 +574,7 @@ const Settings = () => {
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Add an extra layer of security to your account</p>
                 </div>
-                
+
                 <div className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -588,27 +583,25 @@ const Settings = () => {
                     </div>
                     <button
                       onClick={() => setSecuritySettings({ ...securitySettings, twoFactorAuth: !securitySettings.twoFactorAuth })}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                        securitySettings.twoFactorAuth ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                      }`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${securitySettings.twoFactorAuth ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                        }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                          securitySettings.twoFactorAuth ? "translate-x-6" : "translate-x-1"
-                        }`}
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${securitySettings.twoFactorAuth ? "translate-x-6" : "translate-x-1"
+                          }`}
                       />
                     </button>
                   </div>
                 </div>
               </div>
-              
+
               {/* Session Management */}
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Session Management</h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Control your active sessions and timeout settings</p>
                 </div>
-                
+
                 <div className="p-6 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -624,7 +617,7 @@ const Settings = () => {
                       className="w-32 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">Login Alerts</p>
@@ -632,18 +625,16 @@ const Settings = () => {
                     </div>
                     <button
                       onClick={() => setSecuritySettings({ ...securitySettings, loginAlerts: !securitySettings.loginAlerts })}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                        securitySettings.loginAlerts ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                      }`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${securitySettings.loginAlerts ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                        }`}
                     >
                       <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                          securitySettings.loginAlerts ? "translate-x-6" : "translate-x-1"
-                        }`}
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${securitySettings.loginAlerts ? "translate-x-6" : "translate-x-1"
+                          }`}
                       />
                     </button>
                   </div>
-                  
+
                   <button className="mt-4 text-sm text-blue-600 hover:text-blue-700">
                     View Active Sessions
                   </button>
@@ -651,7 +642,7 @@ const Settings = () => {
               </div>
             </div>
           )}
-          
+
           {/* Notification Settings */}
           {activeTab === "notifications" && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -659,7 +650,7 @@ const Settings = () => {
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Notification Preferences</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Choose how you want to be notified</p>
               </div>
-              
+
               <div className="p-6 space-y-4">
                 <div className="flex items-center justify-between py-2">
                   <div>
@@ -668,16 +659,14 @@ const Settings = () => {
                   </div>
                   <button
                     onClick={() => setNotificationSettings({ ...notificationSettings, emailNotifications: !notificationSettings.emailNotifications })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                      notificationSettings.emailNotifications ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${notificationSettings.emailNotifications ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                      }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                      notificationSettings.emailNotifications ? "translate-x-6" : "translate-x-1"
-                    }`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${notificationSettings.emailNotifications ? "translate-x-6" : "translate-x-1"
+                      }`} />
                   </button>
                 </div>
-                
+
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Push Notifications</p>
@@ -685,16 +674,14 @@ const Settings = () => {
                   </div>
                   <button
                     onClick={() => setNotificationSettings({ ...notificationSettings, pushNotifications: !notificationSettings.pushNotifications })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                      notificationSettings.pushNotifications ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${notificationSettings.pushNotifications ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                      }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                      notificationSettings.pushNotifications ? "translate-x-6" : "translate-x-1"
-                    }`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${notificationSettings.pushNotifications ? "translate-x-6" : "translate-x-1"
+                      }`} />
                   </button>
                 </div>
-                
+
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Lead Alerts</p>
@@ -702,16 +689,14 @@ const Settings = () => {
                   </div>
                   <button
                     onClick={() => setNotificationSettings({ ...notificationSettings, leadAlerts: !notificationSettings.leadAlerts })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                      notificationSettings.leadAlerts ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${notificationSettings.leadAlerts ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                      }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                      notificationSettings.leadAlerts ? "translate-x-6" : "translate-x-1"
-                    }`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${notificationSettings.leadAlerts ? "translate-x-6" : "translate-x-1"
+                      }`} />
                   </button>
                 </div>
-                
+
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Message Alerts</p>
@@ -719,16 +704,14 @@ const Settings = () => {
                   </div>
                   <button
                     onClick={() => setNotificationSettings({ ...notificationSettings, messageAlerts: !notificationSettings.messageAlerts })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                      notificationSettings.messageAlerts ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${notificationSettings.messageAlerts ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                      }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                      notificationSettings.messageAlerts ? "translate-x-6" : "translate-x-1"
-                    }`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${notificationSettings.messageAlerts ? "translate-x-6" : "translate-x-1"
+                      }`} />
                   </button>
                 </div>
-                
+
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Weekly Report</p>
@@ -736,16 +719,14 @@ const Settings = () => {
                   </div>
                   <button
                     onClick={() => setNotificationSettings({ ...notificationSettings, weeklyReport: !notificationSettings.weeklyReport })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                      notificationSettings.weeklyReport ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${notificationSettings.weeklyReport ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                      }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                      notificationSettings.weeklyReport ? "translate-x-6" : "translate-x-1"
-                    }`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${notificationSettings.weeklyReport ? "translate-x-6" : "translate-x-1"
+                      }`} />
                   </button>
                 </div>
-                
+
                 <div className="pt-4">
                   <button
                     onClick={handleSaveNotifications}
@@ -759,7 +740,7 @@ const Settings = () => {
               </div>
             </div>
           )}
-          
+
           {/* Appearance Settings */}
           {activeTab === "appearance" && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -767,7 +748,7 @@ const Settings = () => {
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Appearance</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Customize how the application looks</p>
               </div>
-              
+
               <div className="p-6 space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -776,42 +757,39 @@ const Settings = () => {
                   <div className="grid grid-cols-3 gap-4">
                     <button
                       onClick={() => setAppearanceSettings({ ...appearanceSettings, theme: "light" })}
-                      className={`p-4 border-2 rounded-lg text-center transition ${
-                        appearanceSettings.theme === "light"
+                      className={`p-4 border-2 rounded-lg text-center transition ${appearanceSettings.theme === "light"
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                      }`}
+                        }`}
                     >
                       <Sun className="w-6 h-6 mx-auto mb-2 text-yellow-500" />
                       <span className="text-sm">Light</span>
                     </button>
-                    
+
                     <button
                       onClick={() => setAppearanceSettings({ ...appearanceSettings, theme: "dark" })}
-                      className={`p-4 border-2 rounded-lg text-center transition ${
-                        appearanceSettings.theme === "dark"
+                      className={`p-4 border-2 rounded-lg text-center transition ${appearanceSettings.theme === "dark"
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                      }`}
+                        }`}
                     >
                       <Moon className="w-6 h-6 mx-auto mb-2 text-gray-700 dark:text-gray-300" />
                       <span className="text-sm">Dark</span>
                     </button>
-                    
+
                     <button
                       onClick={() => setAppearanceSettings({ ...appearanceSettings, theme: "system" })}
-                      className={`p-4 border-2 rounded-lg text-center transition ${
-                        appearanceSettings.theme === "system"
+                      className={`p-4 border-2 rounded-lg text-center transition ${appearanceSettings.theme === "system"
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-200 dark:border-gray-700 hover:border-gray-300"
-                      }`}
+                        }`}
                     >
                       <Monitor className="w-6 h-6 mx-auto mb-2 text-gray-500" />
                       <span className="text-sm">System</span>
                     </button>
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     Font Size
@@ -819,37 +797,34 @@ const Settings = () => {
                   <div className="flex gap-4">
                     <button
                       onClick={() => setAppearanceSettings({ ...appearanceSettings, fontSize: "small" })}
-                      className={`px-4 py-2 rounded-lg border transition ${
-                        appearanceSettings.fontSize === "small"
+                      className={`px-4 py-2 rounded-lg border transition ${appearanceSettings.fontSize === "small"
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600"
                           : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-                      }`}
+                        }`}
                     >
                       Small
                     </button>
                     <button
                       onClick={() => setAppearanceSettings({ ...appearanceSettings, fontSize: "medium" })}
-                      className={`px-4 py-2 rounded-lg border transition ${
-                        appearanceSettings.fontSize === "medium"
+                      className={`px-4 py-2 rounded-lg border transition ${appearanceSettings.fontSize === "medium"
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600"
                           : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-                      }`}
+                        }`}
                     >
                       Medium
                     </button>
                     <button
                       onClick={() => setAppearanceSettings({ ...appearanceSettings, fontSize: "large" })}
-                      className={`px-4 py-2 rounded-lg border transition ${
-                        appearanceSettings.fontSize === "large"
+                      className={`px-4 py-2 rounded-lg border transition ${appearanceSettings.fontSize === "large"
                           ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-600"
                           : "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-                      }`}
+                        }`}
                     >
                       Large
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Compact View</p>
@@ -857,16 +832,14 @@ const Settings = () => {
                   </div>
                   <button
                     onClick={() => setAppearanceSettings({ ...appearanceSettings, compactView: !appearanceSettings.compactView })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                      appearanceSettings.compactView ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${appearanceSettings.compactView ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                      }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                      appearanceSettings.compactView ? "translate-x-6" : "translate-x-1"
-                    }`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${appearanceSettings.compactView ? "translate-x-6" : "translate-x-1"
+                      }`} />
                   </button>
                 </div>
-                
+
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <p className="font-medium text-gray-900 dark:text-white">Animations</p>
@@ -874,16 +847,14 @@ const Settings = () => {
                   </div>
                   <button
                     onClick={() => setAppearanceSettings({ ...appearanceSettings, animations: !appearanceSettings.animations })}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                      appearanceSettings.animations ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${appearanceSettings.animations ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+                      }`}
                   >
-                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
-                      appearanceSettings.animations ? "translate-x-6" : "translate-x-1"
-                    }`} />
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${appearanceSettings.animations ? "translate-x-6" : "translate-x-1"
+                      }`} />
                   </button>
                 </div>
-                
+
                 <div className="pt-4">
                   <button
                     onClick={handleSaveAppearance}
@@ -896,7 +867,7 @@ const Settings = () => {
               </div>
             </div>
           )}
-          
+
           {/* Data Settings */}
           {activeTab === "data" && (
             <div className="space-y-6">
@@ -906,28 +877,28 @@ const Settings = () => {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Export Data</h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Export your data for backup or migration</p>
                 </div>
-                
+
                 <div className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">Export All Data</p>
                       <p className="text-sm text-gray-500">Download all your leads, messages, and settings</p>
                     </div>
-                   
+
                   </div>
                 </div>
               </div>
-              
-            
-            
-              
+
+
+
+
               {/* Danger Zone */}
               <div className="bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-200 dark:border-red-800">
                 <div className="px-6 py-4 border-b border-red-200 dark:border-red-800">
                   <h2 className="text-lg font-semibold text-red-800 dark:text-red-400">Danger Zone</h2>
                   <p className="text-sm text-red-600 dark:text-red-500">Permanent actions that cannot be undone</p>
                 </div>
-                
+
                 <div className="p-6">
                   <div className="flex items-center justify-between">
                     <div>

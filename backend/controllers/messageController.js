@@ -7,7 +7,7 @@ import { sendEmail } from '../services/emailService.js';
 // Get all conversations for current user
 export const getConversations = async (req, res) => {
   try {
-    console.log('Fetching conversations for user:', req.user.id);
+   
     
     const conversations = await Conversation.find({ 
       userId: req.user.id 
@@ -57,7 +57,7 @@ export const getConversations = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Fetching messages for conversation:', id);
+   
     
     const conversation = await Conversation.findOne({ 
       _id: id,
@@ -104,7 +104,7 @@ export const getMessages = async (req, res) => {
 // Create new conversation and send email
 export const createConversation = async (req, res) => {
   try {
-    console.log('Creating conversation with data:', req.body);
+    
     const { recipient, subject, message } = req.body;
     
     if (!recipient || !subject || !message) {
@@ -147,7 +147,7 @@ export const createConversation = async (req, res) => {
     });
     
     await conversation.save();
-    console.log('Conversation created:', conversation._id);
+    
     
     const newMessage = new Message({
       conversationId: conversation._id,
@@ -210,7 +210,7 @@ export const sendMessage = async (req, res) => {
     const { id } = req.params;
     const { text } = req.body;
     
-    console.log('Sending message to conversation:', id);
+    
     
     const conversation = await Conversation.findOne({ 
       _id: id,
@@ -287,7 +287,7 @@ export const sendMessage = async (req, res) => {
 export const markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Marking message as read:', id);
+   
     
     const message = await Message.findOneAndUpdate(
       { _id: id },

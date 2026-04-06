@@ -11,7 +11,7 @@ let imap = null;
 // Setup IMAP connection for receiving emails
 export const setupEmailReceiver = () => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log('⚠️ Email credentials not configured. Email receiver disabled.');
+   
     return;
   }
 
@@ -25,7 +25,7 @@ export const setupEmailReceiver = () => {
   });
   
   imap.once('ready', () => {
-    console.log('✅ IMAP ready for receiving emails');
+   
     openInbox();
   });
   
@@ -34,7 +34,7 @@ export const setupEmailReceiver = () => {
   });
   
   imap.once('end', () => {
-    console.log('IMAP connection ended');
+    
   });
   
   imap.connect();
@@ -43,7 +43,7 @@ export const setupEmailReceiver = () => {
 const openInbox = () => {
   imap.openBox('INBOX', false, (err, box) => {
     if (err) throw err;
-    console.log('✅ Monitoring inbox for lead replies');
+    
     
     // Search for unseen messages
     imap.search(['UNSEEN'], (err, results) => {
@@ -55,7 +55,7 @@ const openInbox = () => {
     
     // Listen for new messages
     imap.on('mail', (numNewMsgs) => {
-      console.log(`📧 ${numNewMsgs} new email(s) received`);
+      
       imap.search(['UNSEEN'], (err, results) => {
         if (err) throw err;
         if (results.length > 0) {
@@ -120,13 +120,13 @@ const processIncomingEmail = async (email) => {
     // Get the admin user
     const adminUser = await User.findOne({ role: 'admin' });
     if (!adminUser) {
-      console.log('⚠️ No admin user found for email processing');
+    
       return;
     }
     
     // Check if this email is from the system itself (avoid loops)
     if (fromEmail === process.env.EMAIL_USER) {
-      console.log('⏭️ Skipping self email');
+    
       return;
     }
     
@@ -171,13 +171,13 @@ const processIncomingEmail = async (email) => {
       });
       if (conversation) {
         conversationId = conversation._id;
-        console.log('Found conversation via subject:', conversationId);
+       
       }
     }
     
     // If conversation exists, save the incoming message
     if (conversation && conversationId) {
-      console.log('✅ Saving reply to existing conversation:', conversationId);
+     
       
       // Check for duplicate
       const existingMessage = await Message.findOne({ 
@@ -186,7 +186,7 @@ const processIncomingEmail = async (email) => {
       });
       
       if (existingMessage) {
-        console.log('⏭️ Message already exists, skipping duplicate');
+       
         return;
       }
       
@@ -208,7 +208,7 @@ const processIncomingEmail = async (email) => {
       });
       
       await message.save();
-      console.log('✅ Lead reply saved to database');
+     
       
       // Create notification for lead reply
       await createNotification(
@@ -225,8 +225,7 @@ const processIncomingEmail = async (email) => {
       conversation.lastMessageAt = new Date();
       conversation.unreadCount = (conversation.unreadCount || 0) + 1;
       await conversation.save();
-      console.log('✅ Conversation updated');
-      
+     
     } else {
       // Create a new conversation for this lead
       console.log(`📝 Creating new conversation for lead: ${lead.name}`);
@@ -276,7 +275,7 @@ const processIncomingEmail = async (email) => {
       });
       
       await message.save();
-      console.log('✅ Lead message saved to new conversation');
+    
       
       // Create notification for new lead message
       await createNotification(

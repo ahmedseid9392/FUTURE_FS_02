@@ -19,7 +19,7 @@ import HelpSupport from './pages/HelpSupport';
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-950">
@@ -27,90 +27,90 @@ const ProtectedRoute = ({ children }) => {
       </div>
     );
   }
-  
+
   if (!user) {
     return <Navigate to="/" replace />;
   }
-  
+
   return children;
 };
 
 function AppRoutes() {
   const { user } = useAuth();
-  
+
   return (
     <Routes>
       <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Landing />} />
-      
+
       {/* Separate routes for forgot/reset password (no auth required) */}
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-      
+
       {/* Protected routes */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/leads" element={
         <ProtectedRoute>
           <Leads />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/leads/:id" element={
         <ProtectedRoute>
           <LeadDetails />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/analytics" element={
         <ProtectedRoute>
           <Analytics />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/profile" element={
         <ProtectedRoute>
           <Profile />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/messages" element={
         <ProtectedRoute>
           <Messages />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/calendar" element={
         <ProtectedRoute>
           <Calendar />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/reports" element={
         <ProtectedRoute>
           <Reports />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/settings" element={
         <ProtectedRoute>
           <Settings />
         </ProtectedRoute>
       } />
-      
+
       <Route path="/notifications" element={
         <ProtectedRoute>
           <Notifications />
         </ProtectedRoute>
       } />
       <Route path="/help" element={
-  <ProtectedRoute>
-    <HelpSupport />
-  </ProtectedRoute>
-} />
+        <ProtectedRoute>
+          <HelpSupport />
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 }

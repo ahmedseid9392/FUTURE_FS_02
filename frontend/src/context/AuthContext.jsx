@@ -172,9 +172,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateProfile,
     changePassword,
-    uploadAvatar,  // Add this
-    removeAvatar,  // Add this
-    fetchProfile
+    uploadAvatar,  
+    removeAvatar,  
   };
 
   return (

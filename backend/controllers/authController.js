@@ -16,7 +16,7 @@ export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
     
-    console.log('Registration attempt:', { username, email });
+    
     
     // Validate input
     if (!username || !email || !password) {
@@ -91,7 +91,7 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    console.log('Login attempt:', email);
+    
     
     // Find user
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -141,7 +141,7 @@ export const login = async (req, res) => {
 // Get Current User Profile - FIXED
 export const getProfile = async (req, res) => {
   try {
-    console.log('Fetching profile for user:', req.user.id);
+   
     
     const user = await User.findById(req.user.id).select('-password');
     

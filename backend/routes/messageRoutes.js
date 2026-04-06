@@ -13,11 +13,7 @@ import {
 
 const router = express.Router();
 
-// Debug middleware to log all requests to this router
-router.use((req, res, next) => {
-  console.log(`📨 Messages API: ${req.method} ${req.originalUrl}`);
-  next();
-});
+
 
 // Protected routes
 router.get('/conversations', authenticateToken, getConversations);

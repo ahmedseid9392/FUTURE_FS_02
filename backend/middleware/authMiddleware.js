@@ -4,8 +4,7 @@ export const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   
-  console.log('Auth header:', authHeader ? 'Present' : 'Missing');
-  console.log('Token:', token ? 'Present' : 'Missing');
+ 
   
   if (!token) {
     return res.status(401).json({ message: 'Access denied. No token provided.' });
@@ -13,7 +12,7 @@ export const authenticateToken = (req, res, next) => {
   
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Token decoded for user:', decoded.email);
+    
     req.user = decoded;
     next();
   } catch (error) {

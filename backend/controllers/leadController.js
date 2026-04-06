@@ -4,7 +4,7 @@ export const getLeads = async (req, res) => {
   try {
     console.log('Fetching leads for user:', req.user.id);
     const leads = await Lead.find({ userId: req.user.id }).sort({ createdAt: -1 });
-    console.log(`Found ${leads.length} leads`);
+   
     res.json(leads);
   } catch (error) {
     console.error('Get leads error:', error);
@@ -14,14 +14,14 @@ export const getLeads = async (req, res) => {
 
 export const createLead = async (req, res) => {
   try {
-    console.log('Creating lead for user:', req.user.id);
+   
     const lead = new Lead({
       ...req.body,
       userId: req.user.id,
       status: req.body.status || 'new'
     });
     await lead.save();
-    console.log('Lead created:', lead.name);
+   
     res.status(201).json(lead);
   } catch (error) {
     console.error('Create lead error:', error);

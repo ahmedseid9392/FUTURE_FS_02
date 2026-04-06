@@ -3,23 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
 import API from "../services/api";
-import { 
-  Bell, 
-  CheckCircle, 
-  AlertCircle, 
-  MessageSquare, 
-  Users, 
+import {
+  Bell,
+  MessageSquare,
+
   Mail,
   Calendar,
   Clock,
   UserPlus,
   TrendingUp,
   Check,
-  Eye,
+
   Trash2,
-  Filter,
-  Download,
-  Settings
+  Filter
+
 } from "lucide-react";
 
 const Notifications = () => {
@@ -51,37 +48,37 @@ const Notifications = () => {
 
   // Mark notification as read
   // Add this function to refresh notifications
-const refreshNotifications = async () => {
-  try {
-    setLoading(true);
-    const res = await API.get("/notifications");
-    setNotifications(res.data);
-  } catch (error) {
-    console.error("Failed to fetch notifications:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+  const refreshNotifications = async () => {
+    try {
+      setLoading(true);
+      const res = await API.get("/notifications");
+      setNotifications(res.data);
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// Update markAsRead to refresh
-const markAsRead = async (notificationId) => {
-  try {
-    await API.put(`/notifications/${notificationId}/read`);
-    refreshNotifications(); // Refresh after marking as read
-  } catch (error) {
-    console.error("Failed to mark as read:", error);
-  }
-};
+  // Update markAsRead to refresh
+  const markAsRead = async (notificationId) => {
+    try {
+      await API.put(`/notifications/${notificationId}/read`);
+      refreshNotifications(); // Refresh after marking as read
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+    }
+  };
 
-// Update markAllAsRead to refresh
-const markAllAsRead = async () => {
-  try {
-    await API.put("/notifications/read-all");
-    refreshNotifications(); // Refresh after marking all as read
-  } catch (error) {
-    console.error("Failed to mark all as read:", error);
-  }
-};
+  // Update markAllAsRead to refresh
+  const markAllAsRead = async () => {
+    try {
+      await API.put("/notifications/read-all");
+      refreshNotifications(); // Refresh after marking all as read
+    } catch (error) {
+      console.error("Failed to mark all as read:", error);
+    }
+  };
 
 
 
@@ -130,38 +127,38 @@ const markAllAsRead = async () => {
 
   // Get notification icon
   const getNotificationIcon = (type) => {
-  switch(type) {
-    case "lead":
-      return <UserPlus className="w-4 h-4 text-blue-500" />;
-    case "message":
-      return <MessageSquare className="w-4 h-4 text-green-500" />;
-    case "email":
-      return <Mail className="w-4 h-4 text-yellow-500" />;
-    case "calendar":
-      return <Calendar className="w-4 h-4 text-purple-500" />;
-    case "conversion":
-      return <TrendingUp className="w-4 h-4 text-green-500" />;
-    default:
-      return <Bell className="w-4 h-4 text-gray-500" />;
-  }
-};
+    switch (type) {
+      case "lead":
+        return <UserPlus className="w-4 h-4 text-blue-500" />;
+      case "message":
+        return <MessageSquare className="w-4 h-4 text-green-500" />;
+      case "email":
+        return <Mail className="w-4 h-4 text-yellow-500" />;
+      case "calendar":
+        return <Calendar className="w-4 h-4 text-purple-500" />;
+      case "conversion":
+        return <TrendingUp className="w-4 h-4 text-green-500" />;
+      default:
+        return <Bell className="w-4 h-4 text-gray-500" />;
+    }
+  };
 
-// In the getNotificationBg function, add email type:
-const getNotificationBg = (type, read) => {
-  if (read) return "bg-white dark:bg-gray-800";
-  switch(type) {
-    case "lead":
-      return "bg-blue-50 dark:bg-blue-900/20";
-    case "message":
-      return "bg-green-50 dark:bg-green-900/20";
-    case "email":
-      return "bg-yellow-50 dark:bg-yellow-900/20";
-    case "calendar":
-      return "bg-purple-50 dark:bg-purple-900/20";
-    default:
-      return "bg-gray-50 dark:bg-gray-800";
-  }
-};
+  // In the getNotificationBg function, add email type:
+  const getNotificationBg = (type, read) => {
+    if (read) return "bg-white dark:bg-gray-800";
+    switch (type) {
+      case "lead":
+        return "bg-blue-50 dark:bg-blue-900/20";
+      case "message":
+        return "bg-green-50 dark:bg-green-900/20";
+      case "email":
+        return "bg-yellow-50 dark:bg-yellow-900/20";
+      case "calendar":
+        return "bg-purple-50 dark:bg-purple-900/20";
+      default:
+        return "bg-gray-50 dark:bg-gray-800";
+    }
+  };
 
   // Format time
   const formatTime = (date) => {
@@ -171,7 +168,7 @@ const getNotificationBg = (type, read) => {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins} minutes ago`;
     if (diffHours < 24) return `${diffHours} hours ago`;
@@ -232,31 +229,28 @@ const getNotificationBg = (type, read) => {
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter("all")}
-                className={`px-3 py-1 rounded-lg text-sm transition ${
-                  filter === "all"
+                className={`px-3 py-1 rounded-lg text-sm transition ${filter === "all"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 All ({notifications.length})
               </button>
               <button
                 onClick={() => setFilter("unread")}
-                className={`px-3 py-1 rounded-lg text-sm transition ${
-                  filter === "unread"
+                className={`px-3 py-1 rounded-lg text-sm transition ${filter === "unread"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Unread ({unreadCount})
               </button>
               <button
                 onClick={() => setFilter("read")}
-                className={`px-3 py-1 rounded-lg text-sm transition ${
-                  filter === "read"
+                className={`px-3 py-1 rounded-lg text-sm transition ${filter === "read"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                }`}
+                  }`}
               >
                 Read ({notifications.length - unreadCount})
               </button>
@@ -322,12 +316,12 @@ const getNotificationBg = (type, read) => {
                         onChange={() => handleSelect(notification._id)}
                         className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      
+
                       {/* Icon */}
                       <div className="flex-shrink-0">
                         {getNotificationIcon(notification.type)}
                       </div>
-                      
+
                       {/* Content */}
                       <div className="flex-1 min-w-0 cursor-pointer" onClick={() => {
                         if (!notification.read) markAsRead(notification._id);

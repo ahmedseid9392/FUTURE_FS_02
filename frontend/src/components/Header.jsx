@@ -10,8 +10,8 @@ import {
   Menu, 
   User,
   Settings,
-  ChevronDown,
-  Bell
+  ChevronDown
+  
 } from "lucide-react";
 
 const Header = ({ onMenuClick }) => {

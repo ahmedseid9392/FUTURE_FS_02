@@ -5,19 +5,13 @@ import API from "../services/api";
 import { 
   Bell, 
   X, 
-  CheckCircle, 
-  AlertCircle, 
   MessageSquare, 
-  Users, 
-  Mail,
+ Mail,
   Calendar,
   Clock,
   UserPlus,
-  TrendingUp,
-  Check,
-  Eye,
-  Trash2,
-  Settings
+  TrendingUp
+  
 } from "lucide-react";
 
 const Notification = () => {

@@ -21,8 +21,7 @@ export const googleAuth = async (req, res) => {
       return res.status(400).json({ message: 'Google credential is required' });
     }
     
-    console.log('Verifying Google token...');
-    
+   
     // Create OAuth2 client
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
     
@@ -35,7 +34,7 @@ export const googleAuth = async (req, res) => {
     const payload = ticket.getPayload();
     const { email, name, picture, sub: googleId, email_verified } = payload;
     
-    console.log('Google user verified:', { email, name, googleId, email_verified });
+   
     
     // Check if user exists
     let user = await User.findOne({ email });
@@ -82,7 +81,7 @@ export const googleAuth = async (req, res) => {
     // Generate JWT token
     const token = generateToken(user);
     
-    console.log('Google auth successful for:', email);
+   
     
     res.json({
       message: 'Google authentication successful',

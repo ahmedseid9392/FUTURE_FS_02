@@ -6,19 +6,18 @@ import API from "../services/api";
 import GoogleButton from '../components/GoogleButton';
 import dashboardPreviewLight from '../assets/dashboard-preview-light.png';
 import dashboardPreviewDark from '../assets/dashboard-preview-dark.png';
-import { 
-  ArrowRight, 
-  CheckCircle, 
-  Users, 
-  TrendingUp, 
-  Calendar, 
-  Shield, 
+import {
+  ArrowRight,
+  CheckCircle,
+  Users,
+  TrendingUp,
+  Calendar,
+  Shield,
   BarChart3,
   MessageSquare,
   Star,
   Zap,
   Mail,
-  Phone,
   Clock,
   X,
   Eye,
@@ -44,23 +43,23 @@ const Landing = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  
+
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: ""
   });
-  
+
   const [registerForm, setRegisterForm] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: ""
   });
-  
+
   const [forgotPasswordForm, setForgotPasswordForm] = useState({
     email: ""
   });
-  
+
   const [remember, setRemember] = useState(false);
   const [forgotPasswordSubmitted, setForgotPasswordSubmitted] = useState(false);
 
@@ -69,11 +68,11 @@ const Landing = () => {
       setIsScrolled(window.scrollY > 50);
     };
     window.addEventListener('scroll', handleScroll);
-    
+
     if (user) {
       navigate("/dashboard");
     }
-    
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, [user, navigate]);
 
@@ -118,14 +117,14 @@ const Landing = () => {
     setError("");
 
     const result = await login(loginForm.email, loginForm.password, remember);
-    
+
     if (result.success) {
       setShowAuthModal(false);
       navigate("/dashboard");
     } else {
       setError(result.message);
     }
-    
+
     setLoading(false);
   };
 
@@ -150,9 +149,9 @@ const Landing = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    
+
     if (!validateRegister()) return;
-    
+
     setLoading(true);
     setError("");
 
@@ -161,29 +160,29 @@ const Landing = () => {
       registerForm.email,
       registerForm.password
     );
-    
+
     if (result.success) {
       setShowAuthModal(false);
       navigate("/dashboard");
     } else {
       setError(result.message);
     }
-    
+
     setLoading(false);
   };
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    
+
     if (!forgotPasswordForm.email) {
       setError("Please enter your email address");
       return;
     }
-    
+
     setLoading(true);
     setError("");
     setSuccessMessage("");
-    
+
     try {
       await API.post("/auth/forgot-password", { email: forgotPasswordForm.email });
       setForgotPasswordSubmitted(true);
@@ -269,13 +268,12 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 transition-colors duration-200">
-      
+
       {/* Navigation Bar */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white dark:bg-gray-900 shadow-md' 
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled
+          ? 'bg-white dark:bg-gray-900 shadow-md'
           : 'bg-transparent'
-      }`}>
+        }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -341,7 +339,7 @@ const Landing = () => {
               Management Process
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
-              The all-in-one CRM solution for agencies, freelancers, and small businesses. 
+              The all-in-one CRM solution for agencies, freelancers, and small businesses.
               Track, manage, and convert leads into loyal clients effortlessly.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -363,12 +361,12 @@ const Landing = () => {
                 Learn More
               </a>
             </div>
-            
+
             {/* Dashboard Preview with Image */}
             <div className="mt-16 relative">
               <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-950 via-transparent to-transparent"></div>
               <div className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                <img 
+                <img
                   src={isDarkMode ? dashboardPreviewDark : dashboardPreviewLight}
                   alt="LeadCRM Dashboard Preview"
                   className="w-full h-auto object-cover"
@@ -414,11 +412,11 @@ const Landing = () => {
               Everything you need to manage leads effectively and grow your business
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 dark:border-gray-700 group"
               >
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4 group-hover:bg-blue-600 group-hover:text-white transition">
@@ -443,7 +441,7 @@ const Landing = () => {
               See what our customers have to say about their experience
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
@@ -454,9 +452,7 @@ const Landing = () => {
                 </div>
                 <p className="text-gray-700 dark:text-gray-300 mb-4 italic">"{testimonial.content}"</p>
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">{testimonial.name}</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{testimonial.role}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-500">{testimonial.company}</p>
+                 
                 </div>
               </div>
             ))}
@@ -485,7 +481,7 @@ const Landing = () => {
             <ArrowRight className="ml-2 w-5 h-5" />
           </button>
           <p className="text-sm text-blue-100 mt-4">
-            No credit card required • Free 14-day trial
+            No credit card required • 
           </p>
         </div>
       </section>
@@ -497,7 +493,7 @@ const Landing = () => {
             <div>
               <h3 className="text-xl font-bold mb-4">LeadCRM</h3>
               <p className="text-gray-400 text-sm">
-                Transforming lead management for modern businesses since 2024.
+                Transforming lead management for modern businesses since 2026.
               </p>
             </div>
             <div>
@@ -525,7 +521,7 @@ const Landing = () => {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400 text-sm">
-            <p>&copy; 2024 LeadCRM. All rights reserved. Built for modern businesses.</p>
+            <p>&copy; 2026 LeadCRM. All rights reserved. Built for modern businesses.</p>
           </div>
         </div>
       </footer>
@@ -656,7 +652,7 @@ const Landing = () => {
                       >
                         {loading ? "Signing in..." : "Sign In"}
                       </button>
-                      
+
                       <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center">
                           <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
@@ -668,7 +664,7 @@ const Landing = () => {
                         </div>
                       </div>
 
-                      <GoogleButton 
+                      <GoogleButton
                         onSuccess={handleGoogleSuccess}
                         onError={handleGoogleError}
                         buttonText="Sign in with Google"

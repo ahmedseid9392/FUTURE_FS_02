@@ -72,19 +72,7 @@ app.use('/api/calendar', calendarRoutes);
 app.use('/api/export', exportRoutes);
 
 
-// Add to server.js for debugging
-app.get('/api/debug/google-config', (req, res) => {
-  res.json({
-    googleClientId: process.env.GOOGLE_CLIENT_ID ? 'Set' : 'Not set',
-    clientIdValue: process.env.GOOGLE_CLIENT_ID,
-    frontendUrl: process.env.FRONTEND_URL
-  });
-});
 
-// Test route to check if server is working
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Server is working!' });
-});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -111,17 +99,7 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running on port ${PORT}`);
   console.log(`📍 http://localhost:${PORT}`);
-  console.log(`📋 Available routes:`);
-  console.log(`   POST   /api/auth/login`);
-  console.log(`   POST   /api/auth/register`);
-  console.log(`   GET    /api/leads`);
-  console.log(`   POST   /api/leads`);
-  console.log(`   GET    /api/messages/conversations`);
-  console.log(`   POST   /api/messages`);
-  console.log(`   GET    /api/messages/:id`);
-  console.log(`   POST   /api/messages/:id`);
-  console.log(`🔐 JWT_SECRET is configured: ${process.env.JWT_SECRET ? '✅' : '❌'}`);
-  console.log(`📧 Email service: ${process.env.EMAIL_USER ? '✅' : '❌'}`);
+ 
 });
 
 // Add this to server.js for debugging

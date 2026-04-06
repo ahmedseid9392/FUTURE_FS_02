@@ -7,7 +7,7 @@ export const getNotifications = async (req, res) => {
       userId: req.user.id
     }).sort({ createdAt: -1 }).limit(100);
     
-    console.log(`Found ${notifications.length} notifications for user ${req.user.id}`);
+   
     res.json(notifications);
   } catch (error) {
     console.error('Get notifications error:', error);
@@ -92,7 +92,7 @@ export const createNotification = async (userId, type, title, message, relatedId
     });
     
     await notification.save();
-    console.log(`✅ Notification created: ${title} for user ${userId}`);
+    
     return notification;
   } catch (error) {
     console.error('Create notification error:', error);
