@@ -299,7 +299,7 @@ client-lead-management-system/
 
 ### **Step 1: Clone the Repository**
 ```bash
-git clone https://github.com/yourusername/client-lead-management-system.git
+git clone https://github.com/ahmedseid9392/FUTURE_FS_02.git
 cd client-lead-management-system
 ```
 
@@ -659,9 +659,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 | Role | Name | GitHub |
 |------|------|--------|
-| Project Lead | Your Name | [@yourusername](https://github.com/yourusername) |
-| Backend Developer | Your Name | [@yourusername](https://github.com/yourusername) |
-| Frontend Developer | Your Name | [@yourusername](https://github.com/yourusername) |
+| Project Lead | Ahmed Seid| [@AhmedSeid]((https://github.com/ahmedseid9392)) |
+| Backend Developer | Ahmed Seid | [@AhmedSeid(https://github.com/ahmedseid9392) |
+| Frontend Developer | Ahmed Seid| [@AhmedSeid]((https://github.com/ahmedseid9392) |
 
 ---
 
@@ -680,46 +680,25 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 **Project Status**
 
-![Status](https://img.shields.io/badge/status-production-00C7B7?style=flat-square)
-![Version](https://img.shields.io/badge/version-2.0.0-blue?style=flat-square)
-![Coverage](https://img.shields.io/badge/coverage-85%25-green?style=flat-square)
+
 
 ---
 
 ## 📧 **Contact**
 
-- **Email**: your-email@example.com
-- **LinkedIn**: [Your Profile](https://linkedin.com/in/yourprofile)
-- **Portfolio**: [yourportfolio.com](https://yourportfolio.com)
-- **Twitter**: [@yourhandle](https://twitter.com/yourhandle)
+- **Email**: ahmedseid4451@gmail.com
+- **LinkedIn**: [Your Profile](https://linkedin.com/in/AhmedSeid4451)
+- **Portfolio**: [yourportfolio.com](https://ahmedseidali.vercel.app)
+
 
 ---
 
-## 🌟 **Support the Project**
 
-If you found this project helpful, please give it a ⭐ on GitHub!
-
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/client-lead-management-system?style=social)](https://github.com/yourusername/client-lead-management-system/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/yourusername/client-lead-management-system?style=social)](https://github.com/yourusername/client-lead-management-system/network)
-[![GitHub watchers](https://img.shields.io/github/watchers/yourusername/client-lead-management-system?style=social)](https://github.com/yourusername/client-lead-management-system/watchers)
 
 ---
 
-## 🎯 **Roadmap**
 
-- [ ] Mobile app (React Native)
-- [ ] Email campaign automation
-- [ ] Advanced AI lead scoring
-- [ ] Slack/Discord integration
-- [ ] Webhook support
-- [ ] Multi-language support
-- [ ] Team collaboration features
-- [ ] Custom report builder
 
----
 
-**Built with ❤️ for Future Interns Task 2**
-
----
 
 *Last Updated: April 2026*
