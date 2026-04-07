@@ -2,18 +2,18 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../services/api";
 import Layout from "../components/Layout";
-import { 
-  Users, 
-  TrendingUp, 
-  CheckCircle, 
-  Clock, 
+import {
+  Users,
+  TrendingUp,
+  CheckCircle,
+  Clock,
   MessageSquare,
   ArrowRight,
-  Calendar,
   Activity,
   BarChart3,
   Mail,
   PieChart
+
 } from "lucide-react";
 
 const Dashboard = () => {
@@ -32,33 +32,28 @@ const Dashboard = () => {
     fetchLeads();
   }, []);
 
+
   const fetchLeads = async () => {
     try {
       setLoading(true);
       const res = await API.get("/leads");
       setLeads(res.data);
-      
+
       // Calculate stats
       const total = res.data.length;
       const newLeads = res.data.filter(l => l.status === "new").length;
       const contacted = res.data.filter(l => l.status === "contacted").length;
       const converted = res.data.filter(l => l.status === "converted").length;
       const conversionRate = total ? ((converted / total) * 100).toFixed(1) : 0;
-      
-      setStats({
-        total,
-        new: newLeads,
-        contacted,
-        converted,
-        conversionRate
-      });
-      
-      // Get recent leads (last 5)
+
+      setStats({ total, new: newLeads, contacted, converted, conversionRate });
+
+      // Get recent leads (last 5) - ADD THIS
       const recent = [...res.data]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 5);
       setRecentLeads(recent);
-      
+
     } catch (error) {
       console.error("Failed to fetch leads:", error);
     } finally {
@@ -67,7 +62,7 @@ const Dashboard = () => {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case "new": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       case "contacted": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300";
       case "converted": return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
@@ -76,13 +71,14 @@ const Dashboard = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch(status) {
+    switch (status) {
       case "new": return <Clock className="w-4 h-4" />;
       case "contacted": return <MessageSquare className="w-4 h-4" />;
       case "converted": return <CheckCircle className="w-4 h-4" />;
       default: return null;
     }
   };
+
 
   // Calculate weekly trend (last 7 days)
   const getWeeklyTrend = () => {
@@ -105,12 +101,14 @@ const Dashboard = () => {
   const weeklyData = getWeeklyTrend();
   const maxCount = Math.max(...weeklyData.map(d => d.count), 1);
 
+
   return (
     <Layout>
       <div className="min-h-screen">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Welcome back! Here's what's happening with your leads today.
           </p>
@@ -130,7 +128,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition">
             <div className="flex items-center justify-between">
               <div>
@@ -143,7 +141,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition">
             <div className="flex items-center justify-between">
               <div>
@@ -156,7 +154,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition">
             <div className="flex items-center justify-between">
               <div>
@@ -183,9 +181,9 @@ const Dashboard = () => {
               {weeklyData.map((day, index) => (
                 <div key={index} className="flex-1 flex flex-col items-center">
                   <div className="w-full bg-blue-100 dark:bg-blue-900/30 rounded-t-lg transition-all duration-500"
-                       style={{ height: `${(day.count / maxCount) * 200}px` }}>
+                    style={{ height: `${(day.count / maxCount) * 200}px` }}>
                     <div className="w-full h-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg opacity-75"
-                         style={{ height: `${(day.count / maxCount) * 100}%` }}></div>
+                      style={{ height: `${(day.count / maxCount) * 100}%` }}></div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">{day.date}</p>
                   <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">{day.count}</p>
@@ -207,8 +205,8 @@ const Dashboard = () => {
                   <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.new}</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full" 
-                       style={{ width: `${stats.total ? (stats.new / stats.total) * 100 : 0}%` }}></div>
+                  <div className="bg-blue-600 h-2 rounded-full"
+                    style={{ width: `${stats.total ? (stats.new / stats.total) * 100 : 0}%` }}></div>
                 </div>
               </div>
               <div>
@@ -217,8 +215,8 @@ const Dashboard = () => {
                   <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.contacted}</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div className="bg-yellow-600 h-2 rounded-full" 
-                       style={{ width: `${stats.total ? (stats.contacted / stats.total) * 100 : 0}%` }}></div>
+                  <div className="bg-yellow-600 h-2 rounded-full"
+                    style={{ width: `${stats.total ? (stats.contacted / stats.total) * 100 : 0}%` }}></div>
                 </div>
               </div>
               <div>
@@ -227,8 +225,8 @@ const Dashboard = () => {
                   <span className="text-sm font-semibold text-gray-900 dark:text-white">{stats.converted}</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div className="bg-green-600 h-2 rounded-full" 
-                       style={{ width: `${stats.total ? (stats.converted / stats.total) * 100 : 0}%` }}></div>
+                  <div className="bg-green-600 h-2 rounded-full"
+                    style={{ width: `${stats.total ? (stats.converted / stats.total) * 100 : 0}%` }}></div>
                 </div>
               </div>
             </div>
@@ -248,15 +246,15 @@ const Dashboard = () => {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Leads</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Latest 5 leads added to your system</p>
             </div>
-            <Link 
-              to="/leads" 
+            <Link
+              to="/leads"
               className="flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
             >
               View All
               <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
           </div>
-          
+
           {loading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -336,7 +334,7 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold mb-1">Manage Leads</h3>
             <p className="text-sm opacity-90">View and manage all your leads</p>
           </Link>
-          
+
           <Link
             to="/analytics"
             className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl p-6 hover:shadow-lg transition"
@@ -345,7 +343,7 @@ const Dashboard = () => {
             <h3 className="text-lg font-semibold mb-1">View Analytics</h3>
             <p className="text-sm opacity-90">Detailed insights and reports</p>
           </Link>
-          
+
           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6 hover:shadow-lg transition cursor-pointer">
             <Mail className="w-8 h-8 mb-3" />
             <h3 className="text-lg font-semibold mb-1">Email Campaign</h3>

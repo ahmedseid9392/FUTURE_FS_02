@@ -2,14 +2,13 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Layout from "../components/Layout";
-import { 
-  User, 
-  Mail, 
-  Lock, 
-  Camera, 
-  Save, 
-  X, 
-  Eye, 
+import {
+
+  Mail,
+  Lock,
+  Camera,
+
+  Eye,
   EyeOff,
   CheckCircle,
   AlertCircle,
@@ -23,7 +22,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const { user, updateProfile, changePassword, uploadAvatar, removeAvatar, logout } = useAuth();
-  
+
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
@@ -32,19 +31,19 @@ const Profile = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   });
-  
+
   const [editForm, setEditForm] = useState({
     fullName: "",
     email: "",
     username: ""
   });
-  
+
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -62,9 +61,9 @@ const Profile = () => {
     setLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
-    
+
     const result = await updateProfile(editForm);
-    
+
     if (result.success) {
       setIsEditing(false);
       setSuccessMessage("Profile updated successfully!");
@@ -73,31 +72,31 @@ const Profile = () => {
       setErrorMessage(result.message);
       setTimeout(() => setErrorMessage(""), 3000);
     }
-    
+
     setLoading(false);
   };
-  
+
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setErrorMessage("New passwords do not match");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    
+
     if (passwordData.newPassword.length < 6) {
       setErrorMessage("Password must be at least 6 characters");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    
+
     setLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
-    
+
     const result = await changePassword(passwordData.currentPassword, passwordData.newPassword);
-    
+
     if (result.success) {
       setPasswordData({
         currentPassword: "",
@@ -111,32 +110,32 @@ const Profile = () => {
       setErrorMessage(result.message);
       setTimeout(() => setErrorMessage(""), 3000);
     }
-    
+
     setLoading(false);
   };
-  
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     if (!file.type.startsWith('image/')) {
       setErrorMessage("Please select an image file");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    
+
     if (file.size > 5 * 1024 * 1024) {
       setErrorMessage("Image size must be less than 5MB");
       setTimeout(() => setErrorMessage(""), 3000);
       return;
     }
-    
+
     setUploading(true);
     setErrorMessage("");
     setSuccessMessage("");
-    
+
     const result = await uploadAvatar(file);
-    
+
     if (result.success) {
       setSuccessMessage("Profile picture updated!");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -144,16 +143,16 @@ const Profile = () => {
       setErrorMessage(result.message);
       setTimeout(() => setErrorMessage(""), 3000);
     }
-    
+
     setUploading(false);
   };
-  
+
   const handleRemoveImage = async () => {
     if (!window.confirm("Are you sure you want to remove your profile picture?")) return;
-    
+
     setUploading(true);
     const result = await removeAvatar();
-    
+
     if (result.success) {
       setSuccessMessage("Profile picture removed");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -161,20 +160,20 @@ const Profile = () => {
       setErrorMessage(result.message);
       setTimeout(() => setErrorMessage(""), 3000);
     }
-    
+
     setUploading(false);
   };
-  
+
   const handleLogout = () => {
     logout();
     navigate("/");
   };
-  
+
   const getInitials = () => {
     const name = user?.fullName || user?.username;
     return name?.charAt(0).toUpperCase() || "U";
   };
-  
+
   if (!user) {
     return (
       <Layout>
@@ -184,7 +183,7 @@ const Profile = () => {
       </Layout>
     );
   }
-  
+
   return (
     <Layout>
       <div className="min-h-screen">
@@ -195,7 +194,7 @@ const Profile = () => {
             Manage your account settings and preferences
           </p>
         </div>
-        
+
         {/* Success/Error Messages */}
         {successMessage && (
           <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
@@ -203,14 +202,14 @@ const Profile = () => {
             <p className="text-green-700 dark:text-green-400">{successMessage}</p>
           </div>
         )}
-        
+
         {errorMessage && (
           <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-red-500" />
             <p className="text-red-700 dark:text-red-400">{errorMessage}</p>
           </div>
         )}
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Profile Card */}
           <div className="lg:col-span-1">
@@ -220,8 +219,8 @@ const Profile = () => {
                 <div className="relative inline-block">
                   <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center mx-auto">
                     {user.avatar ? (
-                      <img 
-                        src={`http://localhost:5000${user.avatar}`} 
+                      <img
+                        src={user.avatar}  // Cloudinary URL
                         alt={user.fullName || user.username}
                         className="w-full h-full object-cover"
                       />
@@ -231,7 +230,7 @@ const Profile = () => {
                       </span>
                     )}
                   </div>
-                  
+
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
@@ -247,7 +246,7 @@ const Profile = () => {
                     className="hidden"
                   />
                 </div>
-                
+
                 {user.avatar && (
                   <button
                     onClick={handleRemoveImage}
@@ -257,12 +256,12 @@ const Profile = () => {
                     Remove photo
                   </button>
                 )}
-                
+
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-4">
                   {user.fullName || user.username}
                 </h2>
                 <p className="text-gray-500 dark:text-gray-400 text-sm capitalize">{user.role}</p>
-                
+
                 <div className="mt-4 space-y-2 text-sm">
                   <div className="flex items-center justify-center gap-2 text-gray-600 dark:text-gray-400">
                     <Mail className="w-4 h-4" />
@@ -276,7 +275,7 @@ const Profile = () => {
                   )}
                 </div>
               </div>
-              
+
               <div className="p-4 space-y-2">
                 <button
                   onClick={() => {
@@ -308,7 +307,7 @@ const Profile = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Right Column - Forms */}
           <div className="lg:col-span-2 space-y-6">
             {/* Edit Profile Form */}
@@ -318,7 +317,7 @@ const Profile = () => {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Profile</h2>
                   <p className="text-sm text-gray-500">Update your personal information</p>
                 </div>
-                
+
                 <form onSubmit={handleUpdateProfile} className="p-6 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -332,7 +331,7 @@ const Profile = () => {
                       placeholder="Enter your full name"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Username
@@ -345,7 +344,7 @@ const Profile = () => {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Email Address
@@ -358,7 +357,7 @@ const Profile = () => {
                       required
                     />
                   </div>
-                  
+
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
@@ -378,7 +377,7 @@ const Profile = () => {
                 </form>
               </div>
             )}
-            
+
             {/* Change Password Form */}
             {showPasswordForm && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -386,7 +385,7 @@ const Profile = () => {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Change Password</h2>
                   <p className="text-sm text-gray-500">Update your password to keep your account secure</p>
                 </div>
-                
+
                 <form onSubmit={handleChangePassword} className="p-6 space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -409,7 +408,7 @@ const Profile = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       New Password
@@ -432,7 +431,7 @@ const Profile = () => {
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters</p>
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Confirm New Password
@@ -454,7 +453,7 @@ const Profile = () => {
                       </button>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
@@ -481,7 +480,7 @@ const Profile = () => {
                 </form>
               </div>
             )}
-            
+
             {/* Account Information Card */}
             {!isEditing && !showPasswordForm && (
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -489,7 +488,7 @@ const Profile = () => {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Account Information</h2>
                   <p className="text-sm text-gray-500">Your account details and permissions</p>
                 </div>
-                
+
                 <div className="p-6 space-y-4">
                   <div className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                     <span className="text-gray-600 dark:text-gray-400">Full Name</span>
@@ -521,7 +520,7 @@ const Profile = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Security Tips */}
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
               <div className="flex items-start gap-3">

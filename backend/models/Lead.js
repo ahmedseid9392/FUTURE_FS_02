@@ -25,6 +25,12 @@ const leadSchema = new mongoose.Schema({
     enum: ['new', 'contacted', 'converted'],
     default: 'new'
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   notes: [{
     text: String,
     createdBy: String,

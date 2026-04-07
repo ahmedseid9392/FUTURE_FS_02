@@ -36,17 +36,20 @@ const Leads = () => {
     status: "new"
   });
 
-  const fetchLeads = async () => {
-    try {
-      setLoading(true);
-      const res = await API.get("/leads");
-      setLeads(res.data);
-    } catch (error) {
-      console.error("Failed to fetch leads:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+
+const fetchLeads = async () => {
+  try {
+    setLoading(true);
+    // This will automatically return user-specific leads
+    const res = await API.get("/leads");
+    setLeads(res.data);
+    // ... rest of the code
+  } catch (error) {
+    console.error("Failed to fetch leads:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchLeads();

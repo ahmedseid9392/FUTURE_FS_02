@@ -26,11 +26,14 @@ export const AuthProvider = ({ children }) => {
 
   const fetchProfile = async () => {
     try {
+      console.log('Fetching profile...');
       const res = await API.get('/auth/profile');
       setUser(res.data);
     } catch (error) {
       console.error('Failed to fetch profile:', error);
-      logout();
+      if (error.response?.status === 401) {
+        logout();
+      }
     } finally {
       setLoading(false);
     }
@@ -51,9 +54,23 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Login failed' 
+      };
+    }
+  };
+
+  const googleLogin = async (userData) => {
+    try {
+      setUser(userData);
+      return { success: true };
+    } catch (error) {
+      console.error('Google login error:', error);
+      return { 
+        success: false, 
+        message: error.message || 'Google login failed' 
       };
     }
   };
@@ -68,6 +85,7 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       return { success: true };
     } catch (error) {
+      console.error('Registration error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Registration failed' 
@@ -88,6 +106,7 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data);
       return { success: true, data: res.data };
     } catch (error) {
+      console.error('Update profile error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Update failed' 
@@ -100,6 +119,7 @@ export const AuthProvider = ({ children }) => {
       await API.put('/auth/change-password', { currentPassword, newPassword });
       return { success: true };
     } catch (error) {
+      console.error('Change password error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Password change failed' 
@@ -107,17 +127,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ADD THESE FUNCTIONS - Avatar upload and remove
   const uploadAvatar = async (file) => {
-    const formData = new FormData();
-    formData.append('avatar', file);
-    
     try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
       const res = await API.post('/auth/upload-avatar', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      
       setUser(res.data.user);
       return { success: true, avatarUrl: res.data.avatarUrl };
     } catch (error) {
+      console.error('Upload avatar error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Upload failed' 
@@ -131,6 +154,7 @@ export const AuthProvider = ({ children }) => {
       setUser({ ...user, avatar: null });
       return { success: true };
     } catch (error) {
+      console.error('Remove avatar error:', error);
       return { 
         success: false, 
         message: error.response?.data?.message || 'Remove failed' 
@@ -143,13 +167,13 @@ export const AuthProvider = ({ children }) => {
     loading,
     token,
     login,
+    googleLogin,
     register,
     logout,
     updateProfile,
     changePassword,
-    uploadAvatar,
-    removeAvatar,
-    fetchProfile
+    uploadAvatar,  
+    removeAvatar,  
   };
 
   return (

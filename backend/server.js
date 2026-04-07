@@ -10,6 +10,12 @@ import leadRoutes from './routes/leadRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 import { setupEmailReceiver } from './services/emailReceiver.js';
 
+import notificationRoutes from './routes/notificationRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
+import calendarRoutes from './routes/calendarRoutes.js';
+import exportRoutes from './routes/exportRoutes.js';
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -60,11 +66,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/auth', profileRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/messages', messageRoutes); // Make sure this line exists
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/calendar', calendarRoutes);
+app.use('/api/export', exportRoutes);
 
-// Test route to check if server is working
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Server is working!' });
-});
+
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -91,17 +99,21 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running on port ${PORT}`);
   console.log(`📍 http://localhost:${PORT}`);
-  console.log(`📋 Available routes:`);
-  console.log(`   POST   /api/auth/login`);
-  console.log(`   POST   /api/auth/register`);
-  console.log(`   GET    /api/leads`);
-  console.log(`   POST   /api/leads`);
-  console.log(`   GET    /api/messages/conversations`);
-  console.log(`   POST   /api/messages`);
-  console.log(`   GET    /api/messages/:id`);
-  console.log(`   POST   /api/messages/:id`);
-  console.log(`🔐 JWT_SECRET is configured: ${process.env.JWT_SECRET ? '✅' : '❌'}`);
-  console.log(`📧 Email service: ${process.env.EMAIL_USER ? '✅' : '❌'}`);
+ 
+});
+
+// Add this to server.js for debugging
+app.get('/api/debug/check-lead/:email', async (req, res) => {
+  try {
+    const lead = await Lead.findOne({ email: req.params.email });
+    res.json({ 
+      email: req.params.email, 
+      isLead: !!lead,
+      lead: lead ? { name: lead.name, email: lead.email } : null
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 export default app;
