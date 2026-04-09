@@ -53,13 +53,25 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
 }
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://crm-frontend-ielm.onrender.com',
+  'https://your-frontend.netlify.app'
+];
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://crm-frontend-ielm.onrender.com'
- 
-  ],
-  credentials: true
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -121,6 +133,14 @@ app.get('/api/debug/check-lead/:email', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Backend is working!', 
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV
+  });
 });
 
 export default app;
