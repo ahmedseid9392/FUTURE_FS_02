@@ -6,12 +6,26 @@
 [functions]
   node_bundler = "esbuild"
 
+# Redirect all /api/* requests to the function
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
 
+# Handle root path
+[[redirects]]
+  from = "/"
+  to = "/.netlify/functions/api"
+  status = 200
+
+# Handle health check
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/api/health"
+  status = 200
+
+# Handle all other API routes
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/.netlify/functions/api/:splat"
   status = 200
