@@ -21,8 +21,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          icons: ['lucide-react']
-          // Remove 'recharts' from here since it's not installed
+          icons: ['lucide-react'],
+          charts: ['recharts']
         }
       }
     }
