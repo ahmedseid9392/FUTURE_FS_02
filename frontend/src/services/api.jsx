@@ -7,7 +7,7 @@ const API = axios.create({
   },
   
 });
-console.log('API URL:', baseURL);
+
 // Add token to requests
 API.interceptors.request.use(
   (config) => {
