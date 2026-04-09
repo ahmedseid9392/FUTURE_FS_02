@@ -4,8 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useDarkMode } from "../context/DarkModeContext";
 import API from "../services/api";
 import GoogleButton from '../components/GoogleButton';
-import dashboardPreviewLight from '../assets/dashboard-preview-light.png';
-import dashboardPreviewDark from '../assets/dashboard-preview-dark.png';
+
 import {
   ArrowRight,
   CheckCircle,
@@ -362,24 +361,16 @@ const Landing = () => {
               </a>
             </div>
 
-            {/* Dashboard Preview with Image */}
-            <div className="mt-16 relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-950 via-transparent to-transparent"></div>
-              <div className="relative rounded-xl shadow-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                <img
-                  src={isDarkMode ? dashboardPreviewDark : dashboardPreviewLight}
-                  alt="LeadCRM Dashboard Preview"
-                  className="w-full h-auto object-cover"
-                />
-                {/* Optional: Add a play button overlay for video demo */}
-                <div className="absolute bottom-4 right-4">
-                  <div className="bg-black/50 backdrop-blur-sm rounded-full p-2 text-white text-xs flex items-center gap-1">
-                    <Eye className="w-3 h-3" />
-                    <span>Dashboard Preview</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+       {/* Dashboard Preview */}
+<div className="mt-16 relative">
+  <div className="absolute inset-0 bg-gradient-to-t from-white dark:from-gray-950 via-transparent to-transparent"></div>
+  <div className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 h-96 flex items-center justify-center">
+    <div className="text-center">
+      <BarChart3 className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+      <p className="text-gray-500 dark:text-gray-400">Dashboard Preview</p>
+    </div>
+  </div>
+</div>
           </div>
         </div>
       </section>
