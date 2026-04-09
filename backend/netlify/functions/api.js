@@ -4,7 +4,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
-// Import routes
+// Import routes - make sure no __dirname usage
 import authRoutes from '../../routes/authRoutes.js';
 import leadRoutes from '../../routes/leadRoutes.js';
 import messageRoutes from '../../routes/messageRoutes.js';
@@ -20,13 +20,13 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['https://your-frontend.netlify.app', 'http://localhost:5173'],
+  origin: ['https://your-frontend.netlify.app', 'http://localhost:5173', '*'],
   credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection (lazy connection)
+// MongoDB connection
 let cachedDb = null;
 
 const connectToDatabase = async () => {
@@ -75,16 +75,8 @@ app.get('/', (req, res) => {
   res.json({
     message: 'CRM API is running!',
     version: '1.0.0',
-    endpoints: {
-      health: '/api/health',
-      auth: '/api/auth',
-      leads: '/api/leads',
-      messages: '/api/messages',
-      calendar: '/api/calendar',
-      reports: '/api/reports',
-      notifications: '/api/notifications',
-      export: '/api/export'
-    }
+    status: 'active',
+    timestamp: new Date().toISOString()
   });
 });
 

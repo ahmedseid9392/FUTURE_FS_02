@@ -1,11 +1,5 @@
 import User from '../models/User.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import cloudinary from '../config/cloudinary.js';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Update Profile
 export const updateProfile = async (req, res) => {
@@ -59,27 +53,17 @@ export const changePassword = async (req, res) => {
   }
 };
 
-// Upload Avatar to Cloudinary - FIXED
+// Upload Avatar to Cloudinary (Netlify compatible)
 export const uploadAvatar = async (req, res) => {
   try {
-   
+    console.log('=== Upload Avatar Request ===');
     
     if (!req.file) {
-     
       return res.status(400).json({ message: 'No file uploaded' });
-    }
-    
-   
-    
-    // Check if file exists
-    if (!fs.existsSync(req.file.path)) {
-     
-      return res.status(400).json({ message: 'File upload failed' });
     }
     
     const user = await User.findById(req.user.id);
     if (!user) {
-     
       return res.status(404).json({ message: 'User not found' });
     }
     
@@ -88,15 +72,19 @@ export const uploadAvatar = async (req, res) => {
       try {
         const publicId = user.avatar.split('/').pop().split('.')[0];
         await cloudinary.uploader.destroy(`crm_avatars/${publicId}`);
-        
+        console.log('Old avatar deleted from Cloudinary');
       } catch (deleteError) {
         console.log('Error deleting old avatar:', deleteError.message);
       }
     }
     
+    // Convert buffer to base64 for Cloudinary upload
+    const fileStr = req.file.buffer.toString('base64');
+    const dataURI = `data:${req.file.mimetype};base64,${fileStr}`;
+    
     // Upload to Cloudinary
     console.log('Uploading to Cloudinary...');
-    const result = await cloudinary.uploader.upload(req.file.path, {
+    const result = await cloudinary.uploader.upload(dataURI, {
       folder: 'crm_avatars',
       width: 300,
       height: 300,
@@ -106,7 +94,7 @@ export const uploadAvatar = async (req, res) => {
       fetch_format: 'auto'
     });
     
-  
+    console.log('Cloudinary upload successful:', result.secure_url);
     
     // Update user avatar URL
     const updatedUser = await User.findByIdAndUpdate(
@@ -115,16 +103,6 @@ export const uploadAvatar = async (req, res) => {
       { new: true }
     ).select('-password');
     
-    // Delete local file after upload
-    try {
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-        console.log('Local temp file deleted');
-      }
-    } catch (unlinkError) {
-      console.log('Error deleting temp file:', unlinkError.message);
-    }
-    
     res.json({ 
       message: 'Avatar uploaded successfully',
       avatarUrl: result.secure_url,
@@ -132,18 +110,7 @@ export const uploadAvatar = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Upload avatar error details:', error);
-    console.error('Error stack:', error.stack);
-    
-    // Clean up temp file if exists
-    if (req.file && fs.existsSync(req.file.path)) {
-      try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkError) {
-        console.log('Error cleaning up temp file:', unlinkError.message);
-      }
-    }
-    
+    console.error('Upload avatar error:', error);
     res.status(500).json({ 
       message: 'Upload failed: ' + error.message,
       error: error.message 
@@ -159,7 +126,7 @@ export const removeAvatar = async (req, res) => {
     if (user.avatar && user.avatar.includes('cloudinary')) {
       const publicId = user.avatar.split('/').pop().split('.')[0];
       await cloudinary.uploader.destroy(`crm_avatars/${publicId}`);
-     
+      console.log('Avatar deleted from Cloudinary');
     }
     
     await User.findByIdAndUpdate(req.user.id, { avatar: null });
