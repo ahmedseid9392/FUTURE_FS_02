@@ -1,40 +1,26 @@
 import axios from 'axios';
 
+// IMPORTANT: Make sure API_URL includes /api
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+console.log('API URL:', API_URL); // Should show: https://crm-backend-cw8h.onrender.com/api
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  
 });
 
 // Add token to requests
-API.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
-
-// Handle response errors
-API.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
-      sessionStorage.removeItem('token');
-      window.location.href = '/';
-    }
-    return Promise.reject(error);
-  }
-);
+  console.log(`Making ${config.method.toUpperCase()} request to: ${config.baseURL}${config.url}`);
+  return config;
+});
 
 export default API;
 
