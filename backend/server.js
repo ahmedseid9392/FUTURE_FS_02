@@ -53,7 +53,14 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
 }
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://crm-frontend-ielm.onrender.com'
+ 
+  ],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
