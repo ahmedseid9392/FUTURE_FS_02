@@ -4,3 +4,8 @@ uploads/
 *.log
 .DS_Store
 dist/
+
+.env.production
+
+.node-version
+.npmrc
